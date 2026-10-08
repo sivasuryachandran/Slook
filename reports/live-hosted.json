@@ -1,0 +1,67 @@
+{
+  "generated_at": "2026-10-08T17:54:27.929Z",
+  "host": "https://slook-g7dn.onrender.com",
+  "mode": "LIVE_SANDBOX",
+  "rows": [
+    {
+      "label": "Hosted Path C: clean capture",
+      "kind": "capture",
+      "host": "https://slook-g7dn.onrender.com",
+      "run_id": "run_e9a36e08e67d",
+      "paypal_order_id": "8Y939719B7152680C",
+      "decision": "CAPTURE",
+      "reason_codes": [],
+      "paypal_action": "POST /v2/payments/authorizations/24D73029ET515231J/capture",
+      "idempotency_key": "sl:capture:run_e9a36e08e67d:v1",
+      "adapter_mode": "LIVE_SANDBOX",
+      "retry_returns_stored": true,
+      "authorization_id": "24D73029ET515231J",
+      "final_status": "RECONCILED",
+      "actions": [
+        "capture"
+      ],
+      "signature_valid": true,
+      "ledger_chain_ok": true,
+      "webhooks": [
+        {
+          "type": "PAYMENT.CAPTURE.COMPLETED",
+          "verified": true,
+          "verification": "SUCCESS",
+          "event_id": "WH-56J66264UF053133A-5PS465300F379914W"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "label": "Hosted Path B: revoke then void",
+      "kind": "void",
+      "host": "https://slook-g7dn.onrender.com",
+      "run_id": "run_dc9238a491f1",
+      "paypal_order_id": "14X72817F1924834U",
+      "decision": "VOID",
+      "reason_codes": [
+        "intent.revoked"
+      ],
+      "paypal_action": "POST /v2/payments/authorizations/4K9534567H147293N/void",
+      "idempotency_key": "sl:void:run_dc9238a491f1:v1",
+      "adapter_mode": "LIVE_SANDBOX",
+      "retry_returns_stored": true,
+      "authorization_id": "4K9534567H147293N",
+      "final_status": "RECONCILED",
+      "actions": [
+        "void"
+      ],
+      "signature_valid": true,
+      "ledger_chain_ok": true,
+      "webhooks": [
+        {
+          "type": "PAYMENT.AUTHORIZATION.VOIDED",
+          "verified": true,
+          "verification": "SUCCESS",
+          "event_id": "WH-4BA431608X4496013-9F314286RS457983E"
+        }
+      ],
+      "passed": true
+    }
+  ]
+}

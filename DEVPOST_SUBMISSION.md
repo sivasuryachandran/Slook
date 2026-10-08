@@ -30,7 +30,7 @@ The model is not reliable: in our 50-scenario evaluation it produced schema-vali
 - Not escrow, not fraud detection, not AP2-compliant (an AP2-inspired, application-specific contract).
 
 ## Built with
-PayPal (Orders v2, Payments v2, webhooks), AG Grid, NVIDIA Nemotron, Node.js, Postgres, k6, Playwright, Postman. Render is the planned host (not claimed until deployed).
+PayPal (Orders v2, Payments v2, webhooks), AG Grid, NVIDIA Nemotron, Node.js, Postgres, k6, Playwright, Postman. Render hosts the demo at https://slook-g7dn.onrender.com (Postgres); real signed PayPal webhooks were verified end to end there.
 
 ## Testing instructions
 No credentials needed: `npm install && npm start`, open `http://localhost:3000`, pick *Path A / Path B / Matching order*, press "Simulate buyer approval (REPLAY)". Live Runs: `/live.html`. Tests: `npm test`, `npm run test:browser`. Sandbox credentials and the Sandbox buyer login for judges go in the private Devpost testing field; never in the repo.
