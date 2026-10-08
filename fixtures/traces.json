@@ -1,0 +1,1214 @@
+{
+  "note": "Recorded traces. PayPal side is the simulated adapter (REPLAY_SIMULATION); the model output is verbatim from the recorded model call.",
+  "traces": [
+    {
+      "id": "T00",
+      "title": "Matching order → capture",
+      "fixture": false,
+      "recorded_at": "2026-10-08T06:23:45.686Z",
+      "request_text": "Buy one black travel backpack under $90 delivered",
+      "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+      "provider": "nvidia",
+      "prompt_version": "proposal-v1",
+      "temperature": 0.2,
+      "agent_trace_mode": "LIVE_AGENT_TRACE",
+      "model_raw_output": "{\n  \"sku\": \"PACK-BLK-20L\",\n  \"title\": \"20L travel backpack\",\n  \"variant\": \"black\",\n  \"quantity\": 1,\n  \"unit_amount\": \"72.00\",\n  \"shipping_amount\": \"18.00\",\n  \"currency\": \"USD\",\n  \"reasoning_summary\": \"The black 20L travel backpack (PACK-BLK-20L) is priced at $72.00, which is under the $90 budget. Adding the $18.00 shipping brings the total to $90.00, exactly meeting the budget constraint for delivery.\",\n  \"confidence\": 0.95\n}",
+      "proposal": {
+        "sku": "PACK-BLK-20L",
+        "title": "20L travel backpack",
+        "variant": "black",
+        "currency": "USD",
+        "quantity": 1,
+        "confidence": 0.95,
+        "unit_amount": "72.00",
+        "shipping_amount": "18.00",
+        "reasoning_summary": "The black 20L travel backpack (PACK-BLK-20L) is priced at $72.00, which is under the $90 budget. Adding the $18.00 shipping brings the total to $90.00, exactly meeting the budget constraint for delivery."
+      },
+      "contract": {
+        "items": [
+          {
+            "sku": "PACK-BLK-20L",
+            "title": "20L travel backpack",
+            "variant": "black",
+            "quantity": 1,
+            "max_unit_amount": "72.00"
+          }
+        ],
+        "policy": {
+          "allow_substitutions": false,
+          "require_catalog_sku": true,
+          "require_currency_match": true
+        },
+        "run_id": "run_5bd5f77f5c86",
+        "currency": "USD",
+        "max_total": "90.00",
+        "created_at": "2026-10-08T06:23:45.192Z",
+        "expires_at": "2026-10-08T07:23:45.192Z",
+        "request_text": "Buy one black travel backpack under $90 delivered",
+        "contract_hash": "sha256:0ec5f575f69f7c0eaba2bb697e6b2ade1ed23eb96bbfccf9e6cb0b0090f4c5b5",
+        "expected_total": "90.00",
+        "allowed_shipping": {
+          "countries": [
+            "US"
+          ],
+          "max_amount": "18.00"
+        },
+        "policy_snapshot_id": "policy_default_v1",
+        "catalog_snapshot_id": "catalog_2026_10_08_001"
+      },
+      "authorization_id": "SIM-AUTH-264CB58C09",
+      "paypal_order": {
+        "id": "SIM-ORD-98B63EED2D",
+        "intent": "AUTHORIZE",
+        "status": "COMPLETED",
+        "purchase_units": [
+          {
+            "items": [
+              {
+                "sku": "PACK-BLK-20L",
+                "name": "[redacted]",
+                "category": "PHYSICAL_GOODS",
+                "quantity": "1",
+                "description": "variant=black",
+                "unit_amount": {
+                  "value": "72.00",
+                  "currency_code": "USD"
+                }
+              }
+            ],
+            "amount": {
+              "value": "90.00",
+              "breakdown": {
+                "shipping": {
+                  "value": "18.00",
+                  "currency_code": "USD"
+                },
+                "item_total": {
+                  "value": "72.00",
+                  "currency_code": "USD"
+                }
+              },
+              "currency_code": "USD"
+            },
+            "payments": {
+              "authorizations": [
+                {
+                  "id": "SIM-AUTH-264CB58C09",
+                  "amount": {
+                    "value": "90.00",
+                    "breakdown": {
+                      "shipping": {
+                        "value": "18.00",
+                        "currency_code": "USD"
+                      },
+                      "item_total": {
+                        "value": "72.00",
+                        "currency_code": "USD"
+                      }
+                    },
+                    "currency_code": "USD"
+                  },
+                  "status": "CREATED"
+                }
+              ]
+            },
+            "shipping": {
+              "address": {
+                "postal_code": "[redacted]",
+                "admin_area_1": "[redacted]",
+                "admin_area_2": "[redacted]",
+                "country_code": "US",
+                "address_line_1": "[redacted]"
+              }
+            },
+            "custom_id": "sl:run_5bd5f77f5c86:h_0ec5f5",
+            "description": "Slook sandbox order",
+            "reference_id": "run_5bd5f77f5c86"
+          }
+        ]
+      },
+      "recorded_decision": "CAPTURE",
+      "recorded_reason_codes": [],
+      "recorded_paypal_action": "POST /v2/payments/authorizations/SIM-AUTH-264CB58C09/capture → HTTP 201 (simulated adapter)",
+      "webhook": {
+        "event_type": "PAYMENT.CAPTURE.COMPLETED",
+        "event_id": "WH-SIM-00851c6709",
+        "simulated": true
+      }
+    },
+    {
+      "id": "T01",
+      "title": "PayPal unit price raised after AI proposal",
+      "fixture": true,
+      "recorded_at": "2026-10-08T06:23:46.970Z",
+      "request_text": "Buy one black travel backpack under $90 delivered",
+      "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+      "provider": "nvidia",
+      "prompt_version": "proposal-v1",
+      "temperature": 0.2,
+      "agent_trace_mode": "LIVE_AGENT_TRACE",
+      "model_raw_output": "{\n  \"sku\": \"PACK-BLK-20L\",\n  \"title\": \"20L travel backpack\",\n  \"variant\": \"black\",\n  \"quantity\": 1,\n  \"unit_amount\": \"72.00\",\n  \"shipping_amount\": \"18.00\",\n  \"currency\": \"USD\",\n  \"reasoning_summary\": \"The black 20L travel backpack (PACK-BLK-20L) is priced at $72.00, which is under the $90 budget. Adding the $18.00 shipping brings the total to $90.00, exactly meeting the budget constraint for delivery.\",\n  \"confidence\": 0.95\n}",
+      "proposal": {
+        "sku": "PACK-BLK-20L",
+        "title": "20L travel backpack",
+        "variant": "black",
+        "currency": "USD",
+        "quantity": 1,
+        "confidence": 0.95,
+        "unit_amount": "72.00",
+        "shipping_amount": "18.00",
+        "reasoning_summary": "The black 20L travel backpack (PACK-BLK-20L) is priced at $72.00, which is under the $90 budget. Adding the $18.00 shipping brings the total to $90.00, exactly meeting the budget constraint for delivery."
+      },
+      "contract": {
+        "items": [
+          {
+            "sku": "PACK-BLK-20L",
+            "title": "20L travel backpack",
+            "variant": "black",
+            "quantity": 1,
+            "max_unit_amount": "72.00"
+          }
+        ],
+        "policy": {
+          "allow_substitutions": false,
+          "require_catalog_sku": true,
+          "require_currency_match": true
+        },
+        "run_id": "run_1bad9c584861",
+        "currency": "USD",
+        "max_total": "90.00",
+        "created_at": "2026-10-08T06:23:46.479Z",
+        "expires_at": "2026-10-08T07:23:46.479Z",
+        "request_text": "Buy one black travel backpack under $90 delivered",
+        "contract_hash": "sha256:a9b5fe80b70ba583d656d20304ea389c2cfec8cbaafaa5656dad639b736b7df3",
+        "expected_total": "90.00",
+        "allowed_shipping": {
+          "countries": [
+            "US"
+          ],
+          "max_amount": "18.00"
+        },
+        "policy_snapshot_id": "policy_default_v1",
+        "catalog_snapshot_id": "catalog_2026_10_08_001"
+      },
+      "authorization_id": "SIM-AUTH-07A170099A",
+      "paypal_order": {
+        "id": "SIM-ORD-BEB7AFEEB9",
+        "intent": "AUTHORIZE",
+        "status": "COMPLETED",
+        "purchase_units": [
+          {
+            "items": [
+              {
+                "sku": "PACK-BLK-20L",
+                "name": "[redacted]",
+                "category": "PHYSICAL_GOODS",
+                "quantity": "1",
+                "description": "variant=black",
+                "unit_amount": {
+                  "value": "90.00",
+                  "currency_code": "USD"
+                }
+              }
+            ],
+            "amount": {
+              "value": "108.00",
+              "breakdown": {
+                "shipping": {
+                  "value": "18.00",
+                  "currency_code": "USD"
+                },
+                "item_total": {
+                  "value": "90.00",
+                  "currency_code": "USD"
+                }
+              },
+              "currency_code": "USD"
+            },
+            "payments": {
+              "authorizations": [
+                {
+                  "id": "SIM-AUTH-07A170099A",
+                  "amount": {
+                    "value": "108.00",
+                    "breakdown": {
+                      "shipping": {
+                        "value": "18.00",
+                        "currency_code": "USD"
+                      },
+                      "item_total": {
+                        "value": "90.00",
+                        "currency_code": "USD"
+                      }
+                    },
+                    "currency_code": "USD"
+                  },
+                  "status": "CREATED"
+                }
+              ]
+            },
+            "shipping": {
+              "address": {
+                "postal_code": "[redacted]",
+                "admin_area_1": "[redacted]",
+                "admin_area_2": "[redacted]",
+                "country_code": "US",
+                "address_line_1": "[redacted]"
+              }
+            },
+            "custom_id": "sl:run_1bad9c584861:h_a9b5fe",
+            "description": "Slook sandbox order",
+            "reference_id": "run_1bad9c584861"
+          }
+        ]
+      },
+      "recorded_decision": "VOID",
+      "recorded_reason_codes": [
+        "amount.total",
+        "items.unit_amount",
+        "catalog.price"
+      ],
+      "recorded_paypal_action": "POST /v2/payments/authorizations/SIM-AUTH-07A170099A/void → HTTP 204 (simulated adapter)",
+      "webhook": {
+        "event_type": "PAYMENT.AUTHORIZATION.VOIDED",
+        "event_id": "WH-SIM-6e9dcef774",
+        "simulated": true
+      }
+    },
+    {
+      "id": "T02",
+      "title": "Quantity changed 1 → 2",
+      "fixture": true,
+      "recorded_at": "2026-10-08T06:23:48.005Z",
+      "request_text": "Buy one black travel backpack under $90 delivered",
+      "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+      "provider": "nvidia",
+      "prompt_version": "proposal-v1",
+      "temperature": 0.2,
+      "agent_trace_mode": "LIVE_AGENT_TRACE",
+      "model_raw_output": "{\n  \"sku\": \"PACK-BLK-20L\",\n  \"title\": \"20L travel backpack\",\n  \"variant\": \"black\",\n  \"quantity\": 1,\n  \"unit_amount\": \"72.00\",\n  \"shipping_amount\": \"18.00\",\n  \"currency\": \"USD\",\n  \"reasoning_summary\": \"The black 20L travel backpack (PACK-BLK-20L) is priced at $72.00, which is under the $90 budget. Adding the $18.00 shipping brings the total to $90.00, exactly meeting the budget constraint for delivery.\",\n  \"confidence\": 0.95\n}",
+      "proposal": {
+        "sku": "PACK-BLK-20L",
+        "title": "20L travel backpack",
+        "variant": "black",
+        "currency": "USD",
+        "quantity": 1,
+        "confidence": 0.95,
+        "unit_amount": "72.00",
+        "shipping_amount": "18.00",
+        "reasoning_summary": "The black 20L travel backpack (PACK-BLK-20L) is priced at $72.00, which is under the $90 budget. Adding the $18.00 shipping brings the total to $90.00, exactly meeting the budget constraint for delivery."
+      },
+      "contract": {
+        "items": [
+          {
+            "sku": "PACK-BLK-20L",
+            "title": "20L travel backpack",
+            "variant": "black",
+            "quantity": 1,
+            "max_unit_amount": "72.00"
+          }
+        ],
+        "policy": {
+          "allow_substitutions": false,
+          "require_catalog_sku": true,
+          "require_currency_match": true
+        },
+        "run_id": "run_7c0377e7e6b5",
+        "currency": "USD",
+        "max_total": "90.00",
+        "created_at": "2026-10-08T06:23:47.526Z",
+        "expires_at": "2026-10-08T07:23:47.526Z",
+        "request_text": "Buy one black travel backpack under $90 delivered",
+        "contract_hash": "sha256:fd67e9e8747c0455a973a22da8722065345372446f81857072eeb674056dbf37",
+        "expected_total": "90.00",
+        "allowed_shipping": {
+          "countries": [
+            "US"
+          ],
+          "max_amount": "18.00"
+        },
+        "policy_snapshot_id": "policy_default_v1",
+        "catalog_snapshot_id": "catalog_2026_10_08_001"
+      },
+      "authorization_id": "SIM-AUTH-FDA2D2BE6E",
+      "paypal_order": {
+        "id": "SIM-ORD-170C3D1DFA",
+        "intent": "AUTHORIZE",
+        "status": "COMPLETED",
+        "purchase_units": [
+          {
+            "items": [
+              {
+                "sku": "PACK-BLK-20L",
+                "name": "[redacted]",
+                "category": "PHYSICAL_GOODS",
+                "quantity": "2",
+                "description": "variant=black",
+                "unit_amount": {
+                  "value": "72.00",
+                  "currency_code": "USD"
+                }
+              }
+            ],
+            "amount": {
+              "value": "162.00",
+              "breakdown": {
+                "shipping": {
+                  "value": "18.00",
+                  "currency_code": "USD"
+                },
+                "item_total": {
+                  "value": "72.00",
+                  "currency_code": "USD"
+                }
+              },
+              "currency_code": "USD"
+            },
+            "payments": {
+              "authorizations": [
+                {
+                  "id": "SIM-AUTH-FDA2D2BE6E",
+                  "amount": {
+                    "value": "162.00",
+                    "breakdown": {
+                      "shipping": {
+                        "value": "18.00",
+                        "currency_code": "USD"
+                      },
+                      "item_total": {
+                        "value": "72.00",
+                        "currency_code": "USD"
+                      }
+                    },
+                    "currency_code": "USD"
+                  },
+                  "status": "CREATED"
+                }
+              ]
+            },
+            "shipping": {
+              "address": {
+                "postal_code": "[redacted]",
+                "admin_area_1": "[redacted]",
+                "admin_area_2": "[redacted]",
+                "country_code": "US",
+                "address_line_1": "[redacted]"
+              }
+            },
+            "custom_id": "sl:run_7c0377e7e6b5:h_fd67e9",
+            "description": "Slook sandbox order",
+            "reference_id": "run_7c0377e7e6b5"
+          }
+        ]
+      },
+      "recorded_decision": "VOID",
+      "recorded_reason_codes": [
+        "amount.total",
+        "items.quantity"
+      ],
+      "recorded_paypal_action": "POST /v2/payments/authorizations/SIM-AUTH-FDA2D2BE6E/void → HTTP 204 (simulated adapter)",
+      "webhook": {
+        "event_type": "PAYMENT.AUTHORIZATION.VOIDED",
+        "event_id": "WH-SIM-e13e986944",
+        "simulated": true
+      }
+    },
+    {
+      "id": "T03",
+      "title": "SKU swapped to navy variant",
+      "fixture": true,
+      "recorded_at": "2026-10-08T06:23:49.020Z",
+      "request_text": "Buy one black travel backpack under $90 delivered",
+      "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+      "provider": "nvidia",
+      "prompt_version": "proposal-v1",
+      "temperature": 0.2,
+      "agent_trace_mode": "LIVE_AGENT_TRACE",
+      "model_raw_output": "{\n  \"sku\": \"PACK-BLK-20L\",\n  \"title\": \"20L travel backpack\",\n  \"variant\": \"black\",\n  \"quantity\": 1,\n  \"unit_amount\": \"72.00\",\n  \"shipping_amount\": \"18.00\",\n  \"currency\": \"USD\",\n  \"reasoning_summary\": \"The black 20L travel backpack (PACK-BLK-20L) is priced at $72.00, which is under the $90 budget. Adding the $18.00 shipping brings the total to $90.00, exactly meeting the budget constraint for delivery.\",\n  \"confidence\": 0.95\n}",
+      "proposal": {
+        "sku": "PACK-BLK-20L",
+        "title": "20L travel backpack",
+        "variant": "black",
+        "currency": "USD",
+        "quantity": 1,
+        "confidence": 0.95,
+        "unit_amount": "72.00",
+        "shipping_amount": "18.00",
+        "reasoning_summary": "The black 20L travel backpack (PACK-BLK-20L) is priced at $72.00, which is under the $90 budget. Adding the $18.00 shipping brings the total to $90.00, exactly meeting the budget constraint for delivery."
+      },
+      "contract": {
+        "items": [
+          {
+            "sku": "PACK-BLK-20L",
+            "title": "20L travel backpack",
+            "variant": "black",
+            "quantity": 1,
+            "max_unit_amount": "72.00"
+          }
+        ],
+        "policy": {
+          "allow_substitutions": false,
+          "require_catalog_sku": true,
+          "require_currency_match": true
+        },
+        "run_id": "run_fbd2ec6a9b98",
+        "currency": "USD",
+        "max_total": "90.00",
+        "created_at": "2026-10-08T06:23:48.543Z",
+        "expires_at": "2026-10-08T07:23:48.543Z",
+        "request_text": "Buy one black travel backpack under $90 delivered",
+        "contract_hash": "sha256:c06b61f2f8481cd1d2df41832289c85307d16f35597025cadfe7864e37903538",
+        "expected_total": "90.00",
+        "allowed_shipping": {
+          "countries": [
+            "US"
+          ],
+          "max_amount": "18.00"
+        },
+        "policy_snapshot_id": "policy_default_v1",
+        "catalog_snapshot_id": "catalog_2026_10_08_001"
+      },
+      "authorization_id": "SIM-AUTH-AA8DC0A367",
+      "paypal_order": {
+        "id": "SIM-ORD-BE36E5D909",
+        "intent": "AUTHORIZE",
+        "status": "COMPLETED",
+        "purchase_units": [
+          {
+            "items": [
+              {
+                "sku": "PACK-NVY-20L",
+                "name": "[redacted]",
+                "category": "PHYSICAL_GOODS",
+                "quantity": "1",
+                "description": "variant=navy",
+                "unit_amount": {
+                  "value": "72.00",
+                  "currency_code": "USD"
+                }
+              }
+            ],
+            "amount": {
+              "value": "90.00",
+              "breakdown": {
+                "shipping": {
+                  "value": "18.00",
+                  "currency_code": "USD"
+                },
+                "item_total": {
+                  "value": "72.00",
+                  "currency_code": "USD"
+                }
+              },
+              "currency_code": "USD"
+            },
+            "payments": {
+              "authorizations": [
+                {
+                  "id": "SIM-AUTH-AA8DC0A367",
+                  "amount": {
+                    "value": "90.00",
+                    "breakdown": {
+                      "shipping": {
+                        "value": "18.00",
+                        "currency_code": "USD"
+                      },
+                      "item_total": {
+                        "value": "72.00",
+                        "currency_code": "USD"
+                      }
+                    },
+                    "currency_code": "USD"
+                  },
+                  "status": "CREATED"
+                }
+              ]
+            },
+            "shipping": {
+              "address": {
+                "postal_code": "[redacted]",
+                "admin_area_1": "[redacted]",
+                "admin_area_2": "[redacted]",
+                "country_code": "US",
+                "address_line_1": "[redacted]"
+              }
+            },
+            "custom_id": "sl:run_fbd2ec6a9b98:h_c06b61",
+            "description": "Slook sandbox order",
+            "reference_id": "run_fbd2ec6a9b98"
+          }
+        ]
+      },
+      "recorded_decision": "VOID",
+      "recorded_reason_codes": [
+        "items.sku",
+        "items.variant",
+        "policy.substitution"
+      ],
+      "recorded_paypal_action": "POST /v2/payments/authorizations/SIM-AUTH-AA8DC0A367/void → HTTP 204 (simulated adapter)",
+      "webhook": {
+        "event_type": "PAYMENT.AUTHORIZATION.VOIDED",
+        "event_id": "WH-SIM-ab804372bf",
+        "simulated": true
+      }
+    },
+    {
+      "id": "T04",
+      "title": "Currency changed USD → EUR",
+      "fixture": true,
+      "recorded_at": "2026-10-08T06:23:49.998Z",
+      "request_text": "Buy one black travel backpack under $90 delivered",
+      "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+      "provider": "nvidia",
+      "prompt_version": "proposal-v1",
+      "temperature": 0.2,
+      "agent_trace_mode": "LIVE_AGENT_TRACE",
+      "model_raw_output": "{\n  \"sku\": \"PACK-BLK-20L\",\n  \"title\": \"20L travel backpack\",\n  \"variant\": \"black\",\n  \"quantity\": 1,\n  \"unit_amount\": \"72.00\",\n  \"shipping_amount\": \"18.00\",\n  \"currency\": \"USD\",\n  \"reasoning_summary\": \"The black 20L travel backpack (PACK-BLK-20L) is priced at $72.00, which is under the $90 budget. Adding the $18.00 shipping brings the total to $90.00, exactly meeting the budget constraint for delivery.\",\n  \"confidence\": 0.95\n}",
+      "proposal": {
+        "sku": "PACK-BLK-20L",
+        "title": "20L travel backpack",
+        "variant": "black",
+        "currency": "USD",
+        "quantity": 1,
+        "confidence": 0.95,
+        "unit_amount": "72.00",
+        "shipping_amount": "18.00",
+        "reasoning_summary": "The black 20L travel backpack (PACK-BLK-20L) is priced at $72.00, which is under the $90 budget. Adding the $18.00 shipping brings the total to $90.00, exactly meeting the budget constraint for delivery."
+      },
+      "contract": {
+        "items": [
+          {
+            "sku": "PACK-BLK-20L",
+            "title": "20L travel backpack",
+            "variant": "black",
+            "quantity": 1,
+            "max_unit_amount": "72.00"
+          }
+        ],
+        "policy": {
+          "allow_substitutions": false,
+          "require_catalog_sku": true,
+          "require_currency_match": true
+        },
+        "run_id": "run_98cbe0fa980d",
+        "currency": "USD",
+        "max_total": "90.00",
+        "created_at": "2026-10-08T06:23:49.514Z",
+        "expires_at": "2026-10-08T07:23:49.514Z",
+        "request_text": "Buy one black travel backpack under $90 delivered",
+        "contract_hash": "sha256:87880aa9d259612ac11d00a2b98c877cdbffc4fc1e558efe2b4c913e025e94f8",
+        "expected_total": "90.00",
+        "allowed_shipping": {
+          "countries": [
+            "US"
+          ],
+          "max_amount": "18.00"
+        },
+        "policy_snapshot_id": "policy_default_v1",
+        "catalog_snapshot_id": "catalog_2026_10_08_001"
+      },
+      "authorization_id": "SIM-AUTH-19C1538517",
+      "paypal_order": {
+        "id": "SIM-ORD-43F8985B87",
+        "intent": "AUTHORIZE",
+        "status": "COMPLETED",
+        "purchase_units": [
+          {
+            "items": [
+              {
+                "sku": "PACK-BLK-20L",
+                "name": "[redacted]",
+                "category": "PHYSICAL_GOODS",
+                "quantity": "1",
+                "description": "variant=black",
+                "unit_amount": {
+                  "value": "72.00",
+                  "currency_code": "USD"
+                }
+              }
+            ],
+            "amount": {
+              "value": "90.00",
+              "breakdown": {
+                "shipping": {
+                  "value": "18.00",
+                  "currency_code": "USD"
+                },
+                "item_total": {
+                  "value": "72.00",
+                  "currency_code": "USD"
+                }
+              },
+              "currency_code": "EUR"
+            },
+            "payments": {
+              "authorizations": [
+                {
+                  "id": "SIM-AUTH-19C1538517",
+                  "amount": {
+                    "value": "90.00",
+                    "breakdown": {
+                      "shipping": {
+                        "value": "18.00",
+                        "currency_code": "USD"
+                      },
+                      "item_total": {
+                        "value": "72.00",
+                        "currency_code": "USD"
+                      }
+                    },
+                    "currency_code": "EUR"
+                  },
+                  "status": "CREATED"
+                }
+              ]
+            },
+            "shipping": {
+              "address": {
+                "postal_code": "[redacted]",
+                "admin_area_1": "[redacted]",
+                "admin_area_2": "[redacted]",
+                "country_code": "US",
+                "address_line_1": "[redacted]"
+              }
+            },
+            "custom_id": "sl:run_98cbe0fa980d:h_87880a",
+            "description": "Slook sandbox order",
+            "reference_id": "run_98cbe0fa980d"
+          }
+        ]
+      },
+      "recorded_decision": "VOID",
+      "recorded_reason_codes": [
+        "amount.currency"
+      ],
+      "recorded_paypal_action": "POST /v2/payments/authorizations/SIM-AUTH-19C1538517/void → HTTP 204 (simulated adapter)",
+      "webhook": {
+        "event_type": "PAYMENT.AUTHORIZATION.VOIDED",
+        "event_id": "WH-SIM-728dc1476e",
+        "simulated": true
+      }
+    },
+    {
+      "id": "T05",
+      "title": "Ship-to country changed US → CA",
+      "fixture": true,
+      "recorded_at": "2026-10-08T06:23:50.974Z",
+      "request_text": "Buy one black travel backpack under $90 delivered",
+      "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+      "provider": "nvidia",
+      "prompt_version": "proposal-v1",
+      "temperature": 0.2,
+      "agent_trace_mode": "LIVE_AGENT_TRACE",
+      "model_raw_output": "{\n  \"sku\": \"PACK-BLK-20L\",\n  \"title\": \"20L travel backpack\",\n  \"variant\": \"black\",\n  \"quantity\": 1,\n  \"unit_amount\": \"72.00\",\n  \"shipping_amount\": \"18.00\",\n  \"currency\": \"USD\",\n  \"reasoning_summary\": \"The black 20L travel backpack (PACK-BLK-20L) is priced at $72.00, which is under the $90 budget. Adding the $18.00 shipping brings the total to $90.00, exactly meeting the budget constraint for delivery.\",\n  \"confidence\": 0.95\n}",
+      "proposal": {
+        "sku": "PACK-BLK-20L",
+        "title": "20L travel backpack",
+        "variant": "black",
+        "currency": "USD",
+        "quantity": 1,
+        "confidence": 0.95,
+        "unit_amount": "72.00",
+        "shipping_amount": "18.00",
+        "reasoning_summary": "The black 20L travel backpack (PACK-BLK-20L) is priced at $72.00, which is under the $90 budget. Adding the $18.00 shipping brings the total to $90.00, exactly meeting the budget constraint for delivery."
+      },
+      "contract": {
+        "items": [
+          {
+            "sku": "PACK-BLK-20L",
+            "title": "20L travel backpack",
+            "variant": "black",
+            "quantity": 1,
+            "max_unit_amount": "72.00"
+          }
+        ],
+        "policy": {
+          "allow_substitutions": false,
+          "require_catalog_sku": true,
+          "require_currency_match": true
+        },
+        "run_id": "run_12a008315e4d",
+        "currency": "USD",
+        "max_total": "90.00",
+        "created_at": "2026-10-08T06:23:50.498Z",
+        "expires_at": "2026-10-08T07:23:50.498Z",
+        "request_text": "Buy one black travel backpack under $90 delivered",
+        "contract_hash": "sha256:9aaf0f56e0b1550d4c20fad5f0d6d829651faa92f28622f2e9130d4f830cf70d",
+        "expected_total": "90.00",
+        "allowed_shipping": {
+          "countries": [
+            "US"
+          ],
+          "max_amount": "18.00"
+        },
+        "policy_snapshot_id": "policy_default_v1",
+        "catalog_snapshot_id": "catalog_2026_10_08_001"
+      },
+      "authorization_id": "SIM-AUTH-3DC36C9AF2",
+      "paypal_order": {
+        "id": "SIM-ORD-84967F8676",
+        "intent": "AUTHORIZE",
+        "status": "COMPLETED",
+        "purchase_units": [
+          {
+            "items": [
+              {
+                "sku": "PACK-BLK-20L",
+                "name": "[redacted]",
+                "category": "PHYSICAL_GOODS",
+                "quantity": "1",
+                "description": "variant=black",
+                "unit_amount": {
+                  "value": "72.00",
+                  "currency_code": "USD"
+                }
+              }
+            ],
+            "amount": {
+              "value": "90.00",
+              "breakdown": {
+                "shipping": {
+                  "value": "18.00",
+                  "currency_code": "USD"
+                },
+                "item_total": {
+                  "value": "72.00",
+                  "currency_code": "USD"
+                }
+              },
+              "currency_code": "USD"
+            },
+            "payments": {
+              "authorizations": [
+                {
+                  "id": "SIM-AUTH-3DC36C9AF2",
+                  "amount": {
+                    "value": "90.00",
+                    "breakdown": {
+                      "shipping": {
+                        "value": "18.00",
+                        "currency_code": "USD"
+                      },
+                      "item_total": {
+                        "value": "72.00",
+                        "currency_code": "USD"
+                      }
+                    },
+                    "currency_code": "USD"
+                  },
+                  "status": "CREATED"
+                }
+              ]
+            },
+            "shipping": {
+              "name": "[redacted]",
+              "address": {
+                "postal_code": "[redacted]",
+                "admin_area_1": "[redacted]",
+                "admin_area_2": "[redacted]",
+                "country_code": "CA",
+                "address_line_1": "[redacted]"
+              }
+            },
+            "custom_id": "sl:run_12a008315e4d:h_9aaf0f",
+            "description": "Slook sandbox order",
+            "reference_id": "run_12a008315e4d"
+          }
+        ]
+      },
+      "recorded_decision": "VOID",
+      "recorded_reason_codes": [
+        "shipping.country"
+      ],
+      "recorded_paypal_action": "POST /v2/payments/authorizations/SIM-AUTH-3DC36C9AF2/void → HTTP 204 (simulated adapter)",
+      "webhook": {
+        "event_type": "PAYMENT.AUTHORIZATION.VOIDED",
+        "event_id": "WH-SIM-92f00af8b4",
+        "simulated": true
+      }
+    },
+    {
+      "id": "T06",
+      "title": "Item removed from catalog (unknown SKU)",
+      "fixture": true,
+      "recorded_at": "2026-10-08T06:23:51.969Z",
+      "request_text": "Buy one black travel backpack under $90 delivered",
+      "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+      "provider": "nvidia",
+      "prompt_version": "proposal-v1",
+      "temperature": 0.2,
+      "agent_trace_mode": "LIVE_AGENT_TRACE",
+      "model_raw_output": "{\n  \"sku\": \"PACK-BLK-20L\",\n  \"title\": \"20L travel backpack\",\n  \"variant\": \"black\",\n  \"quantity\": 1,\n  \"unit_amount\": \"72.00\",\n  \"shipping_amount\": \"18.00\",\n  \"currency\": \"USD\",\n  \"reasoning_summary\": \"The black 20L travel backpack (PACK-BLK-20L) is priced at $72.00, which is under the $90 budget. Adding the $18.00 shipping brings the total to $90.00, exactly meeting the budget constraint for delivery.\",\n  \"confidence\": 0.95\n}",
+      "proposal": {
+        "sku": "PACK-BLK-20L",
+        "title": "20L travel backpack",
+        "variant": "black",
+        "currency": "USD",
+        "quantity": 1,
+        "confidence": 0.95,
+        "unit_amount": "72.00",
+        "shipping_amount": "18.00",
+        "reasoning_summary": "The black 20L travel backpack (PACK-BLK-20L) is priced at $72.00, which is under the $90 budget. Adding the $18.00 shipping brings the total to $90.00, exactly meeting the budget constraint for delivery."
+      },
+      "contract": {
+        "items": [
+          {
+            "sku": "PACK-BLK-20L",
+            "title": "20L travel backpack",
+            "variant": "black",
+            "quantity": 1,
+            "max_unit_amount": "72.00"
+          }
+        ],
+        "policy": {
+          "allow_substitutions": false,
+          "require_catalog_sku": true,
+          "require_currency_match": true
+        },
+        "run_id": "run_3682d7b0ca12",
+        "currency": "USD",
+        "max_total": "90.00",
+        "created_at": "2026-10-08T06:23:51.487Z",
+        "expires_at": "2026-10-08T07:23:51.487Z",
+        "request_text": "Buy one black travel backpack under $90 delivered",
+        "contract_hash": "sha256:d9d719977702c633dc834fe928db6203d7077043bb7c7dd478aa8f77066751d9",
+        "expected_total": "90.00",
+        "allowed_shipping": {
+          "countries": [
+            "US"
+          ],
+          "max_amount": "18.00"
+        },
+        "policy_snapshot_id": "policy_default_v1",
+        "catalog_snapshot_id": "catalog_2026_10_08_001"
+      },
+      "authorization_id": "SIM-AUTH-D27E1AA64A",
+      "paypal_order": {
+        "id": "SIM-ORD-E0EC51BBB9",
+        "intent": "AUTHORIZE",
+        "status": "COMPLETED",
+        "purchase_units": [
+          {
+            "items": [
+              {
+                "sku": "PACK-GHOST-99",
+                "name": "[redacted]",
+                "category": "PHYSICAL_GOODS",
+                "quantity": "1",
+                "description": "variant=black",
+                "unit_amount": {
+                  "value": "72.00",
+                  "currency_code": "USD"
+                }
+              }
+            ],
+            "amount": {
+              "value": "90.00",
+              "breakdown": {
+                "shipping": {
+                  "value": "18.00",
+                  "currency_code": "USD"
+                },
+                "item_total": {
+                  "value": "72.00",
+                  "currency_code": "USD"
+                }
+              },
+              "currency_code": "USD"
+            },
+            "payments": {
+              "authorizations": [
+                {
+                  "id": "SIM-AUTH-D27E1AA64A",
+                  "amount": {
+                    "value": "90.00",
+                    "breakdown": {
+                      "shipping": {
+                        "value": "18.00",
+                        "currency_code": "USD"
+                      },
+                      "item_total": {
+                        "value": "72.00",
+                        "currency_code": "USD"
+                      }
+                    },
+                    "currency_code": "USD"
+                  },
+                  "status": "CREATED"
+                }
+              ]
+            },
+            "shipping": {
+              "address": {
+                "postal_code": "[redacted]",
+                "admin_area_1": "[redacted]",
+                "admin_area_2": "[redacted]",
+                "country_code": "US",
+                "address_line_1": "[redacted]"
+              }
+            },
+            "custom_id": "sl:run_3682d7b0ca12:h_d9d719",
+            "description": "Slook sandbox order",
+            "reference_id": "run_3682d7b0ca12"
+          }
+        ]
+      },
+      "recorded_decision": "VOID",
+      "recorded_reason_codes": [
+        "items.sku",
+        "catalog.price",
+        "policy.substitution"
+      ],
+      "recorded_paypal_action": "POST /v2/payments/authorizations/SIM-AUTH-D27E1AA64A/void → HTTP 204 (simulated adapter)",
+      "webhook": {
+        "event_type": "PAYMENT.AUTHORIZATION.VOIDED",
+        "event_id": "WH-SIM-b2b6f32a26",
+        "simulated": true
+      }
+    },
+    {
+      "id": "T07",
+      "title": "custom_id / intent reference altered",
+      "fixture": true,
+      "recorded_at": "2026-10-08T06:23:52.996Z",
+      "request_text": "Buy one black travel backpack under $90 delivered",
+      "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+      "provider": "nvidia",
+      "prompt_version": "proposal-v1",
+      "temperature": 0.2,
+      "agent_trace_mode": "LIVE_AGENT_TRACE",
+      "model_raw_output": "{\n  \"sku\": \"PACK-BLK-20L\",\n  \"title\": \"20L travel backpack\",\n  \"variant\": \"black\",\n  \"quantity\": 1,\n  \"unit_amount\": \"72.00\",\n  \"shipping_amount\": \"18.00\",\n  \"currency\": \"USD\",\n  \"reasoning_summary\": \"The black 20L travel backpack (PACK-BLK-20L) is priced at $72.00, which is under the $90 budget. Adding the $18.00 shipping brings the total to $90.00, exactly meeting the budget constraint for delivery.\",\n  \"confidence\": 0.95\n}",
+      "proposal": {
+        "sku": "PACK-BLK-20L",
+        "title": "20L travel backpack",
+        "variant": "black",
+        "currency": "USD",
+        "quantity": 1,
+        "confidence": 0.95,
+        "unit_amount": "72.00",
+        "shipping_amount": "18.00",
+        "reasoning_summary": "The black 20L travel backpack (PACK-BLK-20L) is priced at $72.00, which is under the $90 budget. Adding the $18.00 shipping brings the total to $90.00, exactly meeting the budget constraint for delivery."
+      },
+      "contract": {
+        "items": [
+          {
+            "sku": "PACK-BLK-20L",
+            "title": "20L travel backpack",
+            "variant": "black",
+            "quantity": 1,
+            "max_unit_amount": "72.00"
+          }
+        ],
+        "policy": {
+          "allow_substitutions": false,
+          "require_catalog_sku": true,
+          "require_currency_match": true
+        },
+        "run_id": "run_ea9ebb8cf3a8",
+        "currency": "USD",
+        "max_total": "90.00",
+        "created_at": "2026-10-08T06:23:52.521Z",
+        "expires_at": "2026-10-08T07:23:52.521Z",
+        "request_text": "Buy one black travel backpack under $90 delivered",
+        "contract_hash": "sha256:98dbf2c5911d64e3738ac304b853fcde708205cfd2be4fe90da1971fa58746c8",
+        "expected_total": "90.00",
+        "allowed_shipping": {
+          "countries": [
+            "US"
+          ],
+          "max_amount": "18.00"
+        },
+        "policy_snapshot_id": "policy_default_v1",
+        "catalog_snapshot_id": "catalog_2026_10_08_001"
+      },
+      "authorization_id": "SIM-AUTH-779C3A906D",
+      "paypal_order": {
+        "id": "SIM-ORD-102F265347",
+        "intent": "AUTHORIZE",
+        "status": "COMPLETED",
+        "purchase_units": [
+          {
+            "items": [
+              {
+                "sku": "PACK-BLK-20L",
+                "name": "[redacted]",
+                "category": "PHYSICAL_GOODS",
+                "quantity": "1",
+                "description": "variant=black",
+                "unit_amount": {
+                  "value": "72.00",
+                  "currency_code": "USD"
+                }
+              }
+            ],
+            "amount": {
+              "value": "90.00",
+              "breakdown": {
+                "shipping": {
+                  "value": "18.00",
+                  "currency_code": "USD"
+                },
+                "item_total": {
+                  "value": "72.00",
+                  "currency_code": "USD"
+                }
+              },
+              "currency_code": "USD"
+            },
+            "payments": {
+              "authorizations": [
+                {
+                  "id": "SIM-AUTH-779C3A906D",
+                  "amount": {
+                    "value": "90.00",
+                    "breakdown": {
+                      "shipping": {
+                        "value": "18.00",
+                        "currency_code": "USD"
+                      },
+                      "item_total": {
+                        "value": "72.00",
+                        "currency_code": "USD"
+                      }
+                    },
+                    "currency_code": "USD"
+                  },
+                  "status": "CREATED"
+                }
+              ]
+            },
+            "shipping": {
+              "address": {
+                "postal_code": "[redacted]",
+                "admin_area_1": "[redacted]",
+                "admin_area_2": "[redacted]",
+                "country_code": "US",
+                "address_line_1": "[redacted]"
+              }
+            },
+            "custom_id": "sl:run_forged:h_000000",
+            "description": "Slook sandbox order",
+            "reference_id": "run_ea9ebb8cf3a8"
+          }
+        ]
+      },
+      "recorded_decision": "VOID",
+      "recorded_reason_codes": [
+        "link.custom_id"
+      ],
+      "recorded_paypal_action": "POST /v2/payments/authorizations/SIM-AUTH-779C3A906D/void → HTTP 204 (simulated adapter)",
+      "webhook": {
+        "event_type": "PAYMENT.AUTHORIZATION.VOIDED",
+        "event_id": "WH-SIM-f958486d59",
+        "simulated": true
+      }
+    },
+    {
+      "id": "T08",
+      "title": "Stale PayPal response (pre-authorization snapshot)",
+      "fixture": true,
+      "recorded_at": "2026-10-08T06:23:54.002Z",
+      "request_text": "Buy one black travel backpack under $90 delivered",
+      "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+      "provider": "nvidia",
+      "prompt_version": "proposal-v1",
+      "temperature": 0.2,
+      "agent_trace_mode": "LIVE_AGENT_TRACE",
+      "model_raw_output": "{\n  \"sku\": \"PACK-BLK-20L\",\n  \"title\": \"20L travel backpack\",\n  \"variant\": \"black\",\n  \"quantity\": 1,\n  \"unit_amount\": \"72.00\",\n  \"shipping_amount\": \"18.00\",\n  \"currency\": \"USD\",\n  \"reasoning_summary\": \"The black 20L travel backpack (PACK-BLK-20L) is priced at $72.00, which is under the $90 budget. Adding the $18.00 shipping brings the total to $90.00, exactly meeting the budget constraint for delivery.\",\n  \"confidence\": 0.95\n}",
+      "proposal": {
+        "sku": "PACK-BLK-20L",
+        "title": "20L travel backpack",
+        "variant": "black",
+        "currency": "USD",
+        "quantity": 1,
+        "confidence": 0.95,
+        "unit_amount": "72.00",
+        "shipping_amount": "18.00",
+        "reasoning_summary": "The black 20L travel backpack (PACK-BLK-20L) is priced at $72.00, which is under the $90 budget. Adding the $18.00 shipping brings the total to $90.00, exactly meeting the budget constraint for delivery."
+      },
+      "contract": {
+        "items": [
+          {
+            "sku": "PACK-BLK-20L",
+            "title": "20L travel backpack",
+            "variant": "black",
+            "quantity": 1,
+            "max_unit_amount": "72.00"
+          }
+        ],
+        "policy": {
+          "allow_substitutions": false,
+          "require_catalog_sku": true,
+          "require_currency_match": true
+        },
+        "run_id": "run_2632d853dc8c",
+        "currency": "USD",
+        "max_total": "90.00",
+        "created_at": "2026-10-08T06:23:53.522Z",
+        "expires_at": "2026-10-08T07:23:53.522Z",
+        "request_text": "Buy one black travel backpack under $90 delivered",
+        "contract_hash": "sha256:187c7459dbc091d2cd2620b67da4897d4303e9fb859e165557013b6fcc8ded9e",
+        "expected_total": "90.00",
+        "allowed_shipping": {
+          "countries": [
+            "US"
+          ],
+          "max_amount": "18.00"
+        },
+        "policy_snapshot_id": "policy_default_v1",
+        "catalog_snapshot_id": "catalog_2026_10_08_001"
+      },
+      "authorization_id": "SIM-AUTH-13C7C6515B",
+      "paypal_order": {
+        "id": "SIM-ORD-7CCA86DB32",
+        "intent": "AUTHORIZE",
+        "status": "APPROVED",
+        "purchase_units": [
+          {
+            "items": [
+              {
+                "sku": "PACK-BLK-20L",
+                "name": "[redacted]",
+                "category": "PHYSICAL_GOODS",
+                "quantity": "1",
+                "description": "variant=black",
+                "unit_amount": {
+                  "value": "72.00",
+                  "currency_code": "USD"
+                }
+              }
+            ],
+            "amount": {
+              "value": "90.00",
+              "breakdown": {
+                "shipping": {
+                  "value": "18.00",
+                  "currency_code": "USD"
+                },
+                "item_total": {
+                  "value": "72.00",
+                  "currency_code": "USD"
+                }
+              },
+              "currency_code": "USD"
+            },
+            "custom_id": "sl:run_2632d853dc8c:h_187c74",
+            "description": "Slook sandbox order",
+            "reference_id": "run_2632d853dc8c"
+          }
+        ]
+      },
+      "recorded_decision": "VOID",
+      "recorded_reason_codes": [
+        "shipping.country",
+        "paypal.state"
+      ],
+      "recorded_paypal_action": "POST /v2/payments/authorizations/SIM-AUTH-13C7C6515B/void → HTTP 204 (simulated adapter)",
+      "webhook": {
+        "event_type": "PAYMENT.AUTHORIZATION.VOIDED",
+        "event_id": "WH-SIM-895764688e",
+        "simulated": true
+      }
+    }
+  ]
+}

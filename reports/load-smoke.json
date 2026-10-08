@@ -1,0 +1,84 @@
+{
+  "generated_at": "2026-10-08T08:16:42.196Z",
+  "profile": "smoke",
+  "adapter": "MOCK_SIMULATION (never real PayPal)",
+  "db": "PGlite in-process (single connection) — not Postgres on Render",
+  "k6_threshold_exit_code": 0,
+  "load_seconds": 27,
+  "drain_seconds_after_load": 0,
+  "peak_virtual_users": 5,
+  "http": {
+    "requests": 52,
+    "req_per_s": 2,
+    "failed_rate": 0,
+    "duration_ms": {
+      "avg": 11,
+      "p50": 11,
+      "p95": 17,
+      "p99": 34
+    }
+  },
+  "runs_accepted_by_k6": 52,
+  "stats": {
+    "mode": "MOCK_SIMULATION",
+    "total": 52,
+    "active_shoppers": 0,
+    "in_flight": 0,
+    "decided": 52,
+    "captured": 29,
+    "voided": 18,
+    "mismatches_caught": 23,
+    "mutation_runs": 23,
+    "mutations_missed": 0,
+    "false_blocks": 0,
+    "blocked_preflight": 5,
+    "mismatch_detection_rate": 100,
+    "ai_fallback_rate": 11.5,
+    "gate_latency_ms": {
+      "avg": 7,
+      "p50": 8,
+      "p95": 10,
+      "p99": 12
+    },
+    "end_to_end_ms": {
+      "p50": 174,
+      "p95": 182,
+      "p99": 187
+    },
+    "throughput_decisions_per_s": 2.3,
+    "reasons": {
+      "items.quantity": 1,
+      "amount.total": 10,
+      "policy.substitution": 5,
+      "items.sku": 5,
+      "intent.revoked": 5,
+      "shipping.country": 3,
+      "items.unit_amount": 4,
+      "items.unrequested": 10,
+      "items.variant": 5,
+      "catalog.price": 4
+    },
+    "scenarios": {
+      "malformed_ai_output": 6,
+      "poisoned_proposal": 5,
+      "price_mutation": 4,
+      "quantity_mutation": 1,
+      "revoked_intent": 5,
+      "shipping_country_mismatch": 3,
+      "sku_mutation": 5,
+      "valid_order": 23
+    },
+    "errors": 0,
+    "error_samples": [],
+    "paypal_api_errors": 0,
+    "truncated": false
+  },
+  "resources": {
+    "server_rss_mb_start": 909,
+    "server_rss_mb_peak": 909,
+    "server_cpu_percent_peak": 0.1,
+    "peak_in_flight_runs": 0,
+    "peak_active_shoppers": 0,
+    "rss_mb_every_30s": []
+  }
+}

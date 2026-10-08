@@ -1,0 +1,84 @@
+{
+  "generated_at": "2026-10-08T08:20:34.718Z",
+  "profile": "spike",
+  "adapter": "MOCK_SIMULATION (never real PayPal)",
+  "db": "PGlite in-process (single connection) — not Postgres on Render",
+  "k6_threshold_exit_code": 99,
+  "load_seconds": 31,
+  "drain_seconds_after_load": 0,
+  "peak_virtual_users": 500,
+  "http": {
+    "requests": 3425,
+    "req_per_s": 110.2,
+    "failed_rate": 0.030948905109489052,
+    "duration_ms": {
+      "avg": 1174,
+      "p50": 578,
+      "p95": 1666,
+      "p99": 26563
+    }
+  },
+  "runs_accepted_by_k6": 3319,
+  "stats": {
+    "mode": "MOCK_SIMULATION",
+    "total": 3390,
+    "active_shoppers": 0,
+    "in_flight": 0,
+    "decided": 3390,
+    "captured": 1778,
+    "voided": 1379,
+    "mismatches_caught": 1612,
+    "mutation_runs": 1612,
+    "mutations_missed": 0,
+    "false_blocks": 0,
+    "blocked_preflight": 233,
+    "mismatch_detection_rate": 100,
+    "ai_fallback_rate": 6.8,
+    "gate_latency_ms": {
+      "avg": 2,
+      "p50": 3,
+      "p95": 3,
+      "p99": 3
+    },
+    "end_to_end_ms": {
+      "p50": 641,
+      "p95": 1424,
+      "p99": 1797
+    },
+    "throughput_decisions_per_s": 112.9,
+    "reasons": {
+      "policy.substitution": 229,
+      "intent.revoked": 236,
+      "items.unrequested": 462,
+      "items.quantity": 212,
+      "amount.total": 911,
+      "items.sku": 229,
+      "shipping.country": 236,
+      "items.unit_amount": 466,
+      "items.variant": 229,
+      "catalog.price": 466
+    },
+    "scenarios": {
+      "malformed_ai_output": 230,
+      "poisoned_proposal": 233,
+      "price_mutation": 466,
+      "quantity_mutation": 212,
+      "revoked_intent": 236,
+      "shipping_country_mismatch": 236,
+      "sku_mutation": 229,
+      "valid_order": 1548
+    },
+    "errors": 0,
+    "error_samples": [],
+    "paypal_api_errors": 0,
+    "truncated": false
+  },
+  "resources": {
+    "server_rss_mb_start": 671,
+    "server_rss_mb_peak": 893,
+    "server_cpu_percent_peak": 1.5,
+    "peak_in_flight_runs": 0,
+    "peak_active_shoppers": 0,
+    "rss_mb_every_30s": []
+  }
+}

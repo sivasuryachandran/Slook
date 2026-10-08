@@ -1,0 +1,84 @@
+{
+  "generated_at": "2026-10-08T08:17:31.443Z",
+  "profile": "demo",
+  "adapter": "MOCK_SIMULATION (never real PayPal)",
+  "db": "PGlite in-process (single connection) — not Postgres on Render",
+  "k6_threshold_exit_code": 0,
+  "load_seconds": 47,
+  "drain_seconds_after_load": 0,
+  "peak_virtual_users": 25,
+  "http": {
+    "requests": 481,
+    "req_per_s": 10.3,
+    "failed_rate": 0,
+    "duration_ms": {
+      "avg": 7,
+      "p50": 6,
+      "p95": 13,
+      "p99": 18
+    }
+  },
+  "runs_accepted_by_k6": 481,
+  "stats": {
+    "mode": "MOCK_SIMULATION",
+    "total": 481,
+    "active_shoppers": 0,
+    "in_flight": 0,
+    "decided": 481,
+    "captured": 257,
+    "voided": 196,
+    "mismatches_caught": 224,
+    "mutation_runs": 224,
+    "mutations_missed": 0,
+    "false_blocks": 0,
+    "blocked_preflight": 28,
+    "mismatch_detection_rate": 100,
+    "ai_fallback_rate": 7.3,
+    "gate_latency_ms": {
+      "avg": 5,
+      "p50": 5,
+      "p95": 8,
+      "p99": 9
+    },
+    "end_to_end_ms": {
+      "p50": 165,
+      "p95": 174,
+      "p99": 177
+    },
+    "throughput_decisions_per_s": 10.9,
+    "reasons": {
+      "policy.substitution": 41,
+      "intent.revoked": 32,
+      "items.unrequested": 69,
+      "items.quantity": 30,
+      "amount.total": 123,
+      "items.sku": 41,
+      "items.unit_amount": 65,
+      "shipping.country": 28,
+      "items.variant": 41,
+      "catalog.price": 65
+    },
+    "scenarios": {
+      "malformed_ai_output": 35,
+      "poisoned_proposal": 28,
+      "price_mutation": 65,
+      "quantity_mutation": 30,
+      "revoked_intent": 32,
+      "shipping_country_mismatch": 28,
+      "sku_mutation": 41,
+      "valid_order": 222
+    },
+    "errors": 0,
+    "error_samples": [],
+    "paypal_api_errors": 0,
+    "truncated": false
+  },
+  "resources": {
+    "server_rss_mb_start": 904,
+    "server_rss_mb_peak": 904,
+    "server_cpu_percent_peak": 0.2,
+    "peak_in_flight_runs": 0,
+    "peak_active_shoppers": 0,
+    "rss_mb_every_30s": []
+  }
+}

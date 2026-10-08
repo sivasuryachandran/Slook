@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slook — Live Runs</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%230f766e' stroke-width='4'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%230f766e'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--ink:#14181f;--mute:#5b6572;--line:#dfe3e8;--ok:#0f766e;--okbg:#e6f6f3;--bad:#b42318;--badbg:#fdecea;--warn:#8a5a00;--warnbg:#fff4d6;--acc:#1d4ed8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:#0f172a;color:#fff;padding:14px 16px}header .row{max-width:1280px;margin:0 auto;display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+header h1{margin:0;font-size:20px}header span{color:#9fb0c8;font-size:14px}header a{color:#9fc2ff;margin-left:auto;font-size:14px}
+#badge{padding:7px 16px;font-size:13px;font-weight:700;text-align:center;background:var(--warnbg);color:var(--warn)}
+main{max-width:1280px;margin:0 auto;padding:16px;display:grid;gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}.card h2{margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:var(--mute)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}.tile b{display:block;font-size:12px;color:var(--mute);font-weight:600}.tile span{font-size:26px;font-weight:700}
+.tile.ok span{color:var(--ok)}.tile.bad span{color:var(--bad)}
+button{font:inherit;border-radius:7px;padding:8px 14px;cursor:pointer;border:1px solid var(--line);background:#fff}button.primary{background:var(--acc);color:#fff;border:0;font-weight:600}button.danger{background:#fff;color:var(--bad);border-color:var(--bad);font-weight:600}
+input[type=text]{padding:8px;border:1px solid var(--line);border-radius:7px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.muted{color:var(--mute);font-size:13px}.fail-cell{color:var(--bad);font-weight:700}.pass-cell{color:var(--ok);font-weight:700}
+#stream{height:240px;overflow:auto;font:12px/1.5 ui-monospace,Menlo,monospace;background:#0f172a;color:#d6e2f5;border-radius:8px;padding:10px}
+#stream .blocked{color:#ff9b91}#stream .ok{color:#7be0cf}
+.two{display:grid;grid-template-columns:2fr 1fr;gap:16px}@media(max-width:900px){.two{grid-template-columns:1fr}}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:700;background:var(--warnbg);color:var(--warn)}
+</style>
+</head>
+<body>
+<header><div class="row"><h1>Slook</h1><span>Live Runs — an authorization firewall for AI commerce</span><a href="/">← Single-run flow</a></div></header>
+<div id="badge">MOCK — simulated shoppers on a mock PayPal adapter. No live funds moved. Real PayPal Sandbox is used only in the single-run flow.</div>
+<main>
+  <section class="card">
+    <h2>Simulated shoppers <span class="pill">MOCK</span> <span id="conn" class="muted" style="text-transform:none"></span></h2>
+    <div class="controls">
+      <button class="primary" data-n="5">Start 5</button><button class="primary" data-n="25">Start 25</button><button class="primary" data-n="100">Start 100</button>
+      <button class="danger" id="inject">Inject price mutation ×5</button>
+      <label class="muted">Mutation mix <select id="mix"><option value="default">default (~30% mismatches)</option><option value="clean">all valid</option><option value="hostile">hostile (70% mismatches)</option></select></label>
+      <input id="key" type="text" placeholder="operator key (only for &gt;25)" style="width:190px" autocomplete="off">
+      <button id="reset">Reset counters</button>
+    </div>
+    <p id="msg" class="muted" style="margin:8px 0 0"></p>
+  </section>
+  <section class="tiles" id="tiles"></section>
+  <section class="two">
+    <div class="card"><h2>Shoppers — one row per run (click for evidence)</h2><div id="grid" style="height:460px"></div></div>
+    <div class="card"><h2>Live event stream</h2><div id="stream"></div>
+      <h2 style="margin-top:14px">Mismatches by assertion</h2><div id="reasons" class="muted">none yet</div></div>
+  </section>
+  <p class="muted">Rows update from WebSocket notifications; the database stays the source of truth. These runs exercise the same deterministic gate as real purchases but never touch real PayPal.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/ag-grid-community@33.3.2/dist/ag-grid-community.min.js"></script>
+<script type="module" src="live.js"></script>
+</body>
+</html>

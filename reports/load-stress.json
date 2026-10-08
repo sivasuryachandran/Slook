@@ -1,0 +1,84 @@
+{
+  "generated_at": "2026-10-08T08:20:00.954Z",
+  "profile": "stress",
+  "adapter": "MOCK_SIMULATION (never real PayPal)",
+  "db": "PGlite in-process (single connection) — not Postgres on Render",
+  "k6_threshold_exit_code": 0,
+  "load_seconds": 72,
+  "drain_seconds_after_load": 0,
+  "peak_virtual_users": 250,
+  "http": {
+    "requests": 5705,
+    "req_per_s": 78.9,
+    "failed_rate": 0,
+    "duration_ms": {
+      "avg": 473,
+      "p50": 405,
+      "p95": 1231,
+      "p99": 1384
+    }
+  },
+  "runs_accepted_by_k6": 5705,
+  "stats": {
+    "mode": "MOCK_SIMULATION",
+    "total": 5705,
+    "active_shoppers": 0,
+    "in_flight": 0,
+    "decided": 5705,
+    "captured": 3048,
+    "voided": 2251,
+    "mismatches_caught": 2657,
+    "mutation_runs": 2657,
+    "mutations_missed": 0,
+    "false_blocks": 0,
+    "blocked_preflight": 406,
+    "mismatch_detection_rate": 100,
+    "ai_fallback_rate": 7.2,
+    "gate_latency_ms": {
+      "avg": 3,
+      "p50": 3,
+      "p95": 4,
+      "p99": 5
+    },
+    "end_to_end_ms": {
+      "p50": 456,
+      "p95": 1195,
+      "p99": 1532
+    },
+    "throughput_decisions_per_s": 81.5,
+    "reasons": {
+      "policy.substitution": 371,
+      "intent.revoked": 375,
+      "items.unrequested": 777,
+      "items.quantity": 384,
+      "amount.total": 1578,
+      "items.sku": 371,
+      "shipping.country": 333,
+      "items.unit_amount": 788,
+      "items.variant": 371,
+      "catalog.price": 788
+    },
+    "scenarios": {
+      "malformed_ai_output": 411,
+      "poisoned_proposal": 406,
+      "price_mutation": 788,
+      "quantity_mutation": 384,
+      "revoked_intent": 375,
+      "shipping_country_mismatch": 333,
+      "sku_mutation": 371,
+      "valid_order": 2637
+    },
+    "errors": 0,
+    "error_samples": [],
+    "paypal_api_errors": 0,
+    "truncated": false
+  },
+  "resources": {
+    "server_rss_mb_start": 799,
+    "server_rss_mb_peak": 799,
+    "server_cpu_percent_peak": 1,
+    "peak_in_flight_runs": 0,
+    "peak_active_shoppers": 0,
+    "rss_mb_every_30s": []
+  }
+}

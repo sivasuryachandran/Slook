@@ -1,0 +1,262 @@
+{
+  "generated_at": "2026-10-08T17:27:10.762Z",
+  "results": [
+    {
+      "id": "M01",
+      "name": "PayPal unit price raised after AI proposal",
+      "kind": "order",
+      "reasonCodes": [
+        "amount.total",
+        "items.unit_amount",
+        "catalog.price"
+      ],
+      "detected": true,
+      "capturePrevented": true,
+      "voided": true,
+      "evidenceStored": true,
+      "explained": true,
+      "deterministic": true,
+      "expected": [
+        "amount.total",
+        "items.unit_amount",
+        "catalog.price"
+      ]
+    },
+    {
+      "id": "M02",
+      "name": "Quantity changed 1 → 2",
+      "kind": "order",
+      "reasonCodes": [
+        "amount.total",
+        "items.quantity"
+      ],
+      "detected": true,
+      "capturePrevented": true,
+      "voided": true,
+      "evidenceStored": true,
+      "explained": true,
+      "deterministic": true,
+      "expected": [
+        "amount.total",
+        "items.quantity"
+      ]
+    },
+    {
+      "id": "M03",
+      "name": "SKU swapped to navy variant",
+      "kind": "order",
+      "reasonCodes": [
+        "items.sku",
+        "items.variant",
+        "items.unrequested",
+        "policy.substitution"
+      ],
+      "detected": true,
+      "capturePrevented": true,
+      "voided": true,
+      "evidenceStored": true,
+      "explained": true,
+      "deterministic": true,
+      "expected": [
+        "items.sku",
+        "items.variant",
+        "policy.substitution"
+      ]
+    },
+    {
+      "id": "M04",
+      "name": "Currency changed USD → EUR",
+      "kind": "order",
+      "reasonCodes": [
+        "amount.currency"
+      ],
+      "detected": true,
+      "capturePrevented": true,
+      "voided": true,
+      "evidenceStored": true,
+      "explained": true,
+      "deterministic": true,
+      "expected": [
+        "amount.currency"
+      ]
+    },
+    {
+      "id": "M05",
+      "name": "Ship-to country changed US → CA",
+      "kind": "scenario",
+      "reasonCodes": [
+        "shipping.country"
+      ],
+      "detected": true,
+      "capturePrevented": true,
+      "voided": true,
+      "evidenceStored": true,
+      "explained": true,
+      "deterministic": true,
+      "expected": [
+        "shipping.country"
+      ]
+    },
+    {
+      "id": "M06",
+      "name": "Item removed from catalog (unknown SKU)",
+      "kind": "order",
+      "reasonCodes": [
+        "items.sku",
+        "catalog.price",
+        "policy.substitution"
+      ],
+      "detected": true,
+      "capturePrevented": true,
+      "voided": true,
+      "evidenceStored": true,
+      "explained": true,
+      "deterministic": true,
+      "expected": [
+        "items.sku",
+        "catalog.price"
+      ]
+    },
+    {
+      "id": "M07",
+      "name": "custom_id / intent reference altered",
+      "kind": "order",
+      "reasonCodes": [
+        "link.custom_id"
+      ],
+      "detected": true,
+      "capturePrevented": true,
+      "voided": true,
+      "evidenceStored": true,
+      "explained": true,
+      "deterministic": true,
+      "expected": [
+        "link.custom_id"
+      ]
+    },
+    {
+      "id": "M08",
+      "name": "Stale PayPal response (pre-authorization snapshot)",
+      "kind": "fault",
+      "reasonCodes": [
+        "shipping.country",
+        "paypal.state"
+      ],
+      "detected": true,
+      "capturePrevented": true,
+      "voided": true,
+      "evidenceStored": true,
+      "explained": true,
+      "deterministic": true,
+      "expected": [
+        "paypal.state"
+      ]
+    },
+    {
+      "id": "M09",
+      "name": "Duplicate webhook delivered",
+      "kind": "webhook",
+      "detected": true,
+      "capturePrevented": true,
+      "voided": "n/a",
+      "evidenceStored": true,
+      "explained": true,
+      "reasonCodes": [
+        "duplicate event ignored"
+      ],
+      "deterministic": true,
+      "expected": []
+    },
+    {
+      "id": "M10",
+      "name": "AI returns invalid JSON",
+      "kind": "ai",
+      "detected": true,
+      "capturePrevented": true,
+      "voided": "n/a (model output rejected; deterministic fallback proposal used)",
+      "evidenceStored": true,
+      "explained": true,
+      "reasonCodes": [
+        "live agent output rejected, deterministic fallback used: proposal is not an object"
+      ],
+      "deterministic": true,
+      "expected": null
+    },
+    {
+      "id": "M11",
+      "name": "AI returns valid JSON with unauthorized price ($1.00)",
+      "kind": "ai",
+      "detected": true,
+      "capturePrevented": true,
+      "voided": "n/a (model output rejected; deterministic fallback proposal used)",
+      "evidenceStored": true,
+      "explained": true,
+      "reasonCodes": [
+        "live agent output rejected, deterministic fallback used: unit_amount does not match catalog"
+      ],
+      "deterministic": true,
+      "expected": null
+    },
+    {
+      "id": "M12",
+      "name": "AI adds an unrequested product",
+      "kind": "ai",
+      "detected": true,
+      "capturePrevented": true,
+      "voided": "n/a (model output rejected; deterministic fallback proposal used)",
+      "evidenceStored": true,
+      "explained": true,
+      "reasonCodes": [
+        "live agent output rejected, deterministic fallback used: unexpected fields: extra_items"
+      ],
+      "deterministic": true,
+      "expected": null
+    },
+    {
+      "id": "M13",
+      "name": "AI ignores the budget (picks the $95 pack)",
+      "kind": "ai-budget",
+      "status": 422,
+      "detected": true,
+      "capturePrevented": true,
+      "voided": "n/a (rejected before any PayPal order exists)",
+      "evidenceStored": true,
+      "explained": true,
+      "reasonCodes": [
+        "proposal total 113.00 exceeds your limit 90.00"
+      ],
+      "deterministic": true,
+      "expected": null
+    },
+    {
+      "id": "M14",
+      "name": "Caller submits a fake amount to the gate",
+      "kind": "caller",
+      "reasonCodes": [
+        "amount.total"
+      ],
+      "detected": true,
+      "capturePrevented": true,
+      "voided": true,
+      "evidenceStored": true,
+      "explained": true,
+      "deterministic": true,
+      "expected": []
+    },
+    {
+      "id": "M15",
+      "name": "Gate called 8× concurrently",
+      "kind": "concurrency",
+      "detected": true,
+      "capturePrevented": true,
+      "voided": "n/a (clean order captured exactly once)",
+      "evidenceStored": true,
+      "explained": true,
+      "reasonCodes": [
+        "1 action, 8 callers"
+      ],
+      "deterministic": true,
+      "expected": []
+    }
+  ]
+}

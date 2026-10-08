@@ -1,0 +1,318 @@
+{
+  "generated_at": "2026-10-08T08:10:50.648Z",
+  "live": false,
+  "webhook_events_received": 10,
+  "webhook_note": "simulated",
+  "rows": [
+    {
+      "n": 1,
+      "label": "Path A: poisoned proposal blocked before PayPal",
+      "scenario": "poisoned_proposal",
+      "expected": "BLOCK",
+      "live": false,
+      "run_id": "run_9142cc290e40",
+      "request": "Find a suitable birthday cake under $60.",
+      "decision": "BLOCK",
+      "reason_codes": [
+        "items.unrequested",
+        "amount.total"
+      ],
+      "paypal_calls": 0,
+      "paypal_snapshots": 0,
+      "paypal_actions_recorded": 0,
+      "ledger_chain_ok": true,
+      "passed": true,
+      "webhooks": []
+    },
+    {
+      "n": 2,
+      "label": "Path B #1: authorize, revoke intent, void",
+      "scenario": "revoke_before_capture",
+      "expected": "VOID",
+      "live": false,
+      "run_id": "run_1d2120b96d65",
+      "request": "Buy 12 donuts and 3 kg of grapes for Friday morning under $80.",
+      "paypal_order_id": "SIM-ORD-A0CA4FFD09",
+      "decision": "VOID",
+      "reason_codes": [
+        "intent.revoked"
+      ],
+      "authorization_id": "SIM-AUTH-47F418A719",
+      "idempotency_key": "sl:void:run_1d2120b96d65:v1",
+      "paypal_action": "POST /v2/payments/authorizations/SIM-AUTH-47F418A719/void",
+      "paypal_http": 204,
+      "retries_return_stored": true,
+      "paypal_actions_recorded": 1,
+      "duplicate_action": false,
+      "ledger_chain_ok": true,
+      "passed": true,
+      "webhooks": [
+        {
+          "type": "PAYMENT.AUTHORIZATION.VOIDED",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "label": "Path B #2: authorize, revoke intent, void",
+      "scenario": "revoke_before_capture",
+      "expected": "VOID",
+      "live": false,
+      "run_id": "run_3cc8244e64dc",
+      "request": "Buy one black travel backpack under $90 delivered",
+      "paypal_order_id": "SIM-ORD-A5C8BC8D14",
+      "decision": "VOID",
+      "reason_codes": [
+        "intent.revoked"
+      ],
+      "authorization_id": "SIM-AUTH-9FA5DCC2C3",
+      "idempotency_key": "sl:void:run_3cc8244e64dc:v1",
+      "paypal_action": "POST /v2/payments/authorizations/SIM-AUTH-9FA5DCC2C3/void",
+      "paypal_http": 204,
+      "retries_return_stored": true,
+      "paypal_actions_recorded": 1,
+      "duplicate_action": false,
+      "ledger_chain_ok": true,
+      "passed": true,
+      "webhooks": [
+        {
+          "type": "PAYMENT.AUTHORIZATION.VOIDED",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "label": "Path B #3: authorize, revoke intent, void",
+      "scenario": "revoke_before_capture",
+      "expected": "VOID",
+      "live": false,
+      "run_id": "run_3cf6292a43d9",
+      "request": "Buy biryani tonight under $25.",
+      "paypal_order_id": "SIM-ORD-81F7F5B7AA",
+      "decision": "VOID",
+      "reason_codes": [
+        "intent.revoked"
+      ],
+      "authorization_id": "SIM-AUTH-05C93153D4",
+      "idempotency_key": "sl:void:run_3cf6292a43d9:v1",
+      "paypal_action": "POST /v2/payments/authorizations/SIM-AUTH-05C93153D4/void",
+      "paypal_http": 204,
+      "retries_return_stored": true,
+      "paypal_actions_recorded": 1,
+      "duplicate_action": false,
+      "ledger_chain_ok": true,
+      "passed": true,
+      "webhooks": [
+        {
+          "type": "PAYMENT.AUTHORIZATION.VOIDED",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "label": "Path C #1: clean capture",
+      "scenario": "happy",
+      "expected": "CAPTURE",
+      "live": false,
+      "run_id": "run_773ec55f7f87",
+      "request": "Buy one black travel backpack under $90 delivered",
+      "paypal_order_id": "SIM-ORD-5A8C98181A",
+      "decision": "CAPTURE",
+      "reason_codes": [],
+      "authorization_id": "SIM-AUTH-DFA57594F8",
+      "idempotency_key": "sl:capture:run_773ec55f7f87:v1",
+      "paypal_action": "POST /v2/payments/authorizations/SIM-AUTH-DFA57594F8/capture",
+      "paypal_http": 201,
+      "retries_return_stored": true,
+      "paypal_actions_recorded": 1,
+      "duplicate_action": false,
+      "ledger_chain_ok": true,
+      "passed": true,
+      "webhooks": [
+        {
+          "type": "PAYMENT.CAPTURE.COMPLETED",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "n": 6,
+      "label": "Path C #2: clean capture",
+      "scenario": "happy",
+      "expected": "CAPTURE",
+      "live": false,
+      "run_id": "run_880227cb29c6",
+      "request": "Find a suitable birthday cake under $60.",
+      "paypal_order_id": "SIM-ORD-5FEDBC24A8",
+      "decision": "CAPTURE",
+      "reason_codes": [],
+      "authorization_id": "SIM-AUTH-A56ACEB51C",
+      "idempotency_key": "sl:capture:run_880227cb29c6:v1",
+      "paypal_action": "POST /v2/payments/authorizations/SIM-AUTH-A56ACEB51C/capture",
+      "paypal_http": 201,
+      "retries_return_stored": true,
+      "paypal_actions_recorded": 1,
+      "duplicate_action": false,
+      "ledger_chain_ok": true,
+      "passed": true,
+      "webhooks": [
+        {
+          "type": "PAYMENT.CAPTURE.COMPLETED",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "n": 7,
+      "label": "Path C #3: clean capture",
+      "scenario": "happy",
+      "expected": "CAPTURE",
+      "live": false,
+      "run_id": "run_32eecfa59484",
+      "request": "Buy biryani tonight under $25.",
+      "paypal_order_id": "SIM-ORD-D12B024763",
+      "decision": "CAPTURE",
+      "reason_codes": [],
+      "authorization_id": "SIM-AUTH-B6C0ABFBDC",
+      "idempotency_key": "sl:capture:run_32eecfa59484:v1",
+      "paypal_action": "POST /v2/payments/authorizations/SIM-AUTH-B6C0ABFBDC/capture",
+      "paypal_http": 201,
+      "retries_return_stored": true,
+      "paypal_actions_recorded": 1,
+      "duplicate_action": false,
+      "ledger_chain_ok": true,
+      "passed": true,
+      "webhooks": [
+        {
+          "type": "PAYMENT.CAPTURE.COMPLETED",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "n": 8,
+      "label": "Price mutation",
+      "scenario": "inflated_total",
+      "expected": "VOID",
+      "live": false,
+      "run_id": "run_5f0170c59f82",
+      "request": "Buy one black travel backpack under $90 delivered",
+      "paypal_order_id": "SIM-ORD-8CAAD86402",
+      "decision": "VOID",
+      "reason_codes": [
+        "amount.total",
+        "items.unit_amount",
+        "catalog.price"
+      ],
+      "authorization_id": "SIM-AUTH-F5DAB6C40B",
+      "idempotency_key": "sl:void:run_5f0170c59f82:v1",
+      "paypal_action": "POST /v2/payments/authorizations/SIM-AUTH-F5DAB6C40B/void",
+      "paypal_http": 204,
+      "retries_return_stored": true,
+      "paypal_actions_recorded": 1,
+      "duplicate_action": false,
+      "ledger_chain_ok": true,
+      "passed": true,
+      "webhooks": [
+        {
+          "type": "PAYMENT.AUTHORIZATION.VOIDED",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "n": 9,
+      "label": "Quantity mutation",
+      "scenario": "wrong_quantity",
+      "expected": "VOID",
+      "live": false,
+      "run_id": "run_4e3f5420f18e",
+      "request": "Buy one black travel backpack under $90 delivered",
+      "paypal_order_id": "SIM-ORD-B771AFAFF3",
+      "decision": "VOID",
+      "reason_codes": [
+        "amount.total",
+        "items.quantity"
+      ],
+      "authorization_id": "SIM-AUTH-8FC71E6228",
+      "idempotency_key": "sl:void:run_4e3f5420f18e:v1",
+      "paypal_action": "POST /v2/payments/authorizations/SIM-AUTH-8FC71E6228/void",
+      "paypal_http": 204,
+      "retries_return_stored": true,
+      "paypal_actions_recorded": 1,
+      "duplicate_action": false,
+      "ledger_chain_ok": true,
+      "passed": true,
+      "webhooks": [
+        {
+          "type": "PAYMENT.AUTHORIZATION.VOIDED",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "n": 10,
+      "label": "SKU mutation",
+      "scenario": "wrong_variant",
+      "expected": "VOID",
+      "live": false,
+      "run_id": "run_5f99132a2f78",
+      "request": "Buy one black travel backpack under $90 delivered",
+      "paypal_order_id": "SIM-ORD-8EFDF804DA",
+      "decision": "VOID",
+      "reason_codes": [
+        "items.sku",
+        "items.variant",
+        "items.unrequested",
+        "policy.substitution"
+      ],
+      "authorization_id": "SIM-AUTH-F441A5D53C",
+      "idempotency_key": "sl:void:run_5f99132a2f78:v1",
+      "paypal_action": "POST /v2/payments/authorizations/SIM-AUTH-F441A5D53C/void",
+      "paypal_http": 204,
+      "retries_return_stored": true,
+      "paypal_actions_recorded": 1,
+      "duplicate_action": false,
+      "ledger_chain_ok": true,
+      "passed": true,
+      "webhooks": [
+        {
+          "type": "PAYMENT.AUTHORIZATION.VOIDED",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "n": 11,
+      "label": "Shipping-country mismatch",
+      "scenario": "wrong_country",
+      "expected": "VOID",
+      "live": false,
+      "run_id": "run_74c35bc1b832",
+      "request": "Buy one black travel backpack under $90 delivered",
+      "paypal_order_id": "SIM-ORD-C18CB150F0",
+      "decision": "VOID",
+      "reason_codes": [
+        "shipping.country"
+      ],
+      "authorization_id": "SIM-AUTH-6CF1ACD91F",
+      "idempotency_key": "sl:void:run_74c35bc1b832:v1",
+      "paypal_action": "POST /v2/payments/authorizations/SIM-AUTH-6CF1ACD91F/void",
+      "paypal_http": 204,
+      "retries_return_stored": true,
+      "paypal_actions_recorded": 1,
+      "duplicate_action": false,
+      "ledger_chain_ok": true,
+      "passed": true,
+      "webhooks": [
+        {
+          "type": "PAYMENT.AUTHORIZATION.VOIDED",
+          "verified": true
+        }
+      ]
+    }
+  ]
+}

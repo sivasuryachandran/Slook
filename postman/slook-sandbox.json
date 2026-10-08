@@ -1,0 +1,45 @@
+{
+  "info": { "name": "Slook — signed-intent spine (Sandbox)", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Two folders. (1) Slook API: the three paths. There is deliberately NO capture/void route; only the internal gate performs those. (2) Direct PayPal Sandbox API: the exact calls the server and gate make, for reproducing them with YOUR OWN sandbox credentials. Set the collection variables; never commit secrets. Buyer approval is manual in the browser." },
+  "variable": [
+    { "key": "base", "value": "http://localhost:3000" }, { "key": "operator_key", "value": "" },
+    { "key": "run_id", "value": "" }, { "key": "order_id", "value": "" }, { "key": "authorization_id", "value": "" },
+    { "key": "paypal_base", "value": "https://api-m.sandbox.paypal.com" }, { "key": "paypal_client_id", "value": "" }, { "key": "paypal_client_secret", "value": "" }, { "key": "paypal_token", "value": "" }
+  ],
+  "item": [
+    { "name": "Slook API", "item": [
+      { "name": "Path A — poisoned proposal (blocked before PayPal)", "event": [{ "listen": "test", "script": { "exec": ["const j = pm.response.json(); pm.collectionVariables.set('run_id', j.run_id); pm.test('blocked before PayPal', () => pm.expect(j.status).to.eql('BLOCKED'));"] } }],
+        "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "x-internal-key", "value": "{{operator_key}}" }], "url": "{{base}}/api/runs",
+          "body": { "mode": "raw", "raw": "{\"request_text\":\"Find a suitable birthday cake under $60.\",\"scenario\":\"poisoned_proposal\"}" } } },
+      { "name": "Create run — open-world request (signs the intent, runs preflight)", "event": [{ "listen": "test", "script": { "exec": ["const j = pm.response.json(); pm.collectionVariables.set('run_id', j.run_id); pm.test('preflight passed', () => pm.expect(j.preflight.decision).to.eql('PASS'));"] } }],
+        "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{base}}/api/runs",
+          "body": { "mode": "raw", "raw": "{\"request_text\":\"Buy 12 donuts and 3 kg of grapes for Friday morning under $80.\",\"scenario\":\"happy\",\"confirm\":false}" } } },
+      { "name": "Create PayPal order (server-side, AUTHORIZE; refused unless preflight passed)", "event": [{ "listen": "test", "script": { "exec": ["pm.collectionVariables.set('order_id', pm.response.json().id);"] } }],
+        "request": { "method": "POST", "url": "{{base}}/api/runs/{{run_id}}/paypal/order" } },
+      { "name": "REPLAY adapter only: simulate buyer approval", "request": { "method": "POST", "url": "{{base}}/api/runs/{{run_id}}/replay/approve" } },
+      { "name": "Authorize (only the order id is sent) → gate runs → CAPTURE or VOID", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{base}}/api/runs/{{run_id}}/paypal/authorize",
+          "body": { "mode": "raw", "raw": "{\"orderID\":\"{{order_id}}\"}" } } },
+      { "name": "Path B — authorize but defer the gate", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{base}}/api/runs/{{run_id}}/paypal/authorize",
+          "body": { "mode": "raw", "raw": "{\"orderID\":\"{{order_id}}\",\"defer_gate\":true}" } } },
+      { "name": "Path B — revoke the signed intent", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{base}}/api/runs/{{run_id}}/intent/revoke", "body": { "mode": "raw", "raw": "{\"reason\":\"user revoked before capture\"}" } } },
+      { "name": "Gate evaluation (idempotent; returns the stored decision on retry)", "request": { "method": "POST", "url": "{{base}}/api/runs/{{run_id}}/evaluate" } },
+      { "name": "Evidence lookup (assertions, signature check, snapshots, ledger integrity)", "request": { "method": "GET", "url": "{{base}}/api/runs/{{run_id}}/evidence" } },
+      { "name": "Simulation: 25 MOCK shoppers (never real PayPal)", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{base}}/api/simulation/runs", "body": { "mode": "raw", "raw": "{\"count\":25,\"think_ms\":300}" } } },
+      { "name": "Simulation stats", "request": { "method": "GET", "url": "{{base}}/api/simulation/stats" } }
+    ] },
+    { "name": "Direct PayPal Sandbox API (reference for what the gate does; your own credentials)", "item": [
+      { "name": "1. OAuth token (client credentials)", "event": [{ "listen": "test", "script": { "exec": ["pm.collectionVariables.set('paypal_token', pm.response.json().access_token);"] } }],
+        "request": { "method": "POST", "auth": { "type": "basic", "basic": [{ "key": "username", "value": "{{paypal_client_id}}" }, { "key": "password", "value": "{{paypal_client_secret}}" }] },
+          "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }], "url": "{{paypal_base}}/v1/oauth2/token", "body": { "mode": "urlencoded", "urlencoded": [{ "key": "grant_type", "value": "client_credentials" }] } } },
+      { "name": "2. Create order (intent AUTHORIZE)", "event": [{ "listen": "test", "script": { "exec": ["pm.collectionVariables.set('order_id', pm.response.json().id);"] } }],
+        "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{paypal_token}}" }, { "key": "Content-Type", "value": "application/json" }, { "key": "PayPal-Request-Id", "value": "sl:create:manual:v1" }], "url": "{{paypal_base}}/v2/checkout/orders",
+          "body": { "mode": "raw", "raw": "{\"intent\":\"AUTHORIZE\",\"purchase_units\":[{\"reference_id\":\"manual\",\"custom_id\":\"sl:manual:h_000000\",\"amount\":{\"currency_code\":\"USD\",\"value\":\"39.50\",\"breakdown\":{\"item_total\":{\"currency_code\":\"USD\",\"value\":\"34.50\"},\"shipping\":{\"currency_code\":\"USD\",\"value\":\"5.00\"}}},\"items\":[{\"name\":\"Glazed donuts\",\"sku\":\"WEB-DONUT-GLZ\",\"quantity\":\"12\",\"unit_amount\":{\"currency_code\":\"USD\",\"value\":\"1.25\"}},{\"name\":\"Seedless grapes 1 kg\",\"sku\":\"WEB-GRAPE-KG\",\"quantity\":\"3\",\"unit_amount\":{\"currency_code\":\"USD\",\"value\":\"6.50\"}}]}]}" } } },
+      { "name": "3. (manual) buyer approves in the browser using the link in the create response", "request": { "method": "GET", "url": "{{paypal_base}}/v2/checkout/orders/{{order_id}}", "header": [{ "key": "Authorization", "value": "Bearer {{paypal_token}}" }] } },
+      { "name": "4. Authorize order", "event": [{ "listen": "test", "script": { "exec": ["const a = pm.response.json().purchase_units[0].payments.authorizations[0]; pm.collectionVariables.set('authorization_id', a.id);"] } }],
+        "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{paypal_token}}" }, { "key": "Content-Type", "value": "application/json" }, { "key": "PayPal-Request-Id", "value": "sl:authorize:manual:v1" }], "url": "{{paypal_base}}/v2/checkout/orders/{{order_id}}/authorize", "body": { "mode": "raw", "raw": "{}" } } },
+      { "name": "5. Fresh GET order (what the gate does before deciding)", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{paypal_token}}" }], "url": "{{paypal_base}}/v2/checkout/orders/{{order_id}}" } },
+      { "name": "6a. Capture authorization (gate does this only on PASS)", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{paypal_token}}" }, { "key": "Content-Type", "value": "application/json" }, { "key": "PayPal-Request-Id", "value": "sl:capture:manual:v1" }], "url": "{{paypal_base}}/v2/payments/authorizations/{{authorization_id}}/capture", "body": { "mode": "raw", "raw": "{\"final_capture\":true}" } } },
+      { "name": "6b. Void authorization (gate does this on any blocking failure)", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{paypal_token}}" }, { "key": "PayPal-Request-Id", "value": "sl:void:manual:v1" }], "url": "{{paypal_base}}/v2/payments/authorizations/{{authorization_id}}/void" } }
+    ] }
+  ]
+}

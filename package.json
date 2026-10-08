@@ -1,0 +1,32 @@
+{
+  "name": "slook",
+  "version": "1.0.0",
+  "description": "Deterministic capture gate for AI commerce on PayPal Sandbox",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test --test-force-exit tests/",
+    "test:sandbox": "RUN_PAYPAL_SANDBOX=true node --env-file=.env --test --test-force-exit tests/sandbox.test.js",
+    "test:sandbox:interactive": "RUN_PAYPAL_SANDBOX=true SANDBOX_INTERACTIVE=true node --env-file=.env --test --test-force-exit tests/sandbox.test.js",
+    "eval:ai": "node scripts/ai-eval.js",
+    "record:traces": "node scripts/record-traces.js",
+    "live:matrix": "node scripts/live-matrix.js",
+    "scan:secrets": "./scripts/secret-scan.sh",
+    "test:browser": "playwright test",
+    "load": "node scripts/run-load.js",
+    "gen:key": "node -e \"import('./src/signing.js').then(m=>console.log(m.generateKeyB64()))\""
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@playwright/test": "^1.64.0",
+    "express": "^5.2.1",
+    "pg": "^8.23.1",
+    "ws": "^8.22.0"
+  }
+}

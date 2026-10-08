@@ -1,0 +1,105 @@
+{
+  "generated_at": "2026-10-08T08:41:26.475Z",
+  "profile": "soak",
+  "adapter": "MOCK_SIMULATION (never real PayPal)",
+  "db": "PGlite in-process (single connection) — not Postgres on Render",
+  "k6_threshold_exit_code": 0,
+  "load_seconds": 602,
+  "drain_seconds_after_load": 0,
+  "peak_virtual_users": 50,
+  "http": {
+    "requests": 14121,
+    "req_per_s": 23.5,
+    "failed_rate": 0,
+    "duration_ms": {
+      "avg": 21,
+      "p50": 14,
+      "p95": 63,
+      "p99": 122
+    }
+  },
+  "runs_accepted_by_k6": 14121,
+  "stats": {
+    "mode": "MOCK_SIMULATION",
+    "total": 14121,
+    "active_shoppers": 0,
+    "in_flight": 0,
+    "decided": 14121,
+    "captured": 7474,
+    "voided": 5707,
+    "mismatches_caught": 6647,
+    "mutation_runs": 6647,
+    "mutations_missed": 0,
+    "false_blocks": 0,
+    "blocked_preflight": 940,
+    "mismatch_detection_rate": 100,
+    "ai_fallback_rate": 6.7,
+    "gate_latency_ms": {
+      "avg": 4,
+      "p50": 4,
+      "p95": 7,
+      "p99": 8
+    },
+    "end_to_end_ms": {
+      "p50": 167,
+      "p95": 203,
+      "p99": 245
+    },
+    "throughput_decisions_per_s": 23.6,
+    "reasons": {
+      "policy.substitution": 934,
+      "intent.revoked": 917,
+      "items.unrequested": 1874,
+      "items.quantity": 975,
+      "amount.total": 3872,
+      "items.sku": 934,
+      "shipping.country": 924,
+      "items.unit_amount": 1957,
+      "items.variant": 934,
+      "catalog.price": 1957
+    },
+    "scenarios": {
+      "malformed_ai_output": 949,
+      "poisoned_proposal": 940,
+      "price_mutation": 1957,
+      "quantity_mutation": 975,
+      "revoked_intent": 917,
+      "shipping_country_mismatch": 924,
+      "sku_mutation": 934,
+      "valid_order": 6525
+    },
+    "errors": 0,
+    "error_samples": [],
+    "paypal_api_errors": 0,
+    "truncated": false
+  },
+  "resources": {
+    "server_rss_mb_start": 1054,
+    "server_rss_mb_peak": 1054,
+    "server_cpu_percent_peak": 111.8,
+    "peak_in_flight_runs": 12,
+    "peak_active_shoppers": 12,
+    "rss_mb_every_30s": [
+      467,
+      322,
+      375,
+      496,
+      411,
+      443,
+      598,
+      446,
+      536,
+      545,
+      638,
+      508,
+      529,
+      471,
+      532,
+      503,
+      612,
+      485,
+      547,
+      425
+    ]
+  }
+}
