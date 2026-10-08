@@ -1,5 +1,6 @@
 # Slook on Render: one web service + one Postgres database.
 # Secrets marked `sync: false` are entered in the Render dashboard; they are never stored in this file.
+# NOTE: Render re-applies the non-secret values below on every push, so change them HERE, not only in the dashboard.
 services:
   - type: web
     name: slook
@@ -13,7 +14,7 @@ services:
       - { key: NODE_ENV, value: production }
       - { key: DATABASE_URL, fromDatabase: { name: slook-db, property: connectionString } }
       # --- PayPal Sandbox (server-side only)
-      - { key: LIVE_PAYPAL, value: "false" }   # set to "true" after the Sandbox keys are in
+      - { key: LIVE_PAYPAL, value: "true" }    # real PayPal Sandbox. Needs PAYPAL_CLIENT_ID/SECRET below. Set "false" for demo mode.
       - { key: PAYPAL_ENV, value: sandbox }
       - { key: PAYPAL_CLIENT_ID, sync: false }
       - { key: PAYPAL_CLIENT_SECRET, sync: false }
@@ -23,7 +24,7 @@ services:
       - { key: INTENT_SIGNING_KEY, sync: false }
       - { key: INTENT_TTL_MIN, value: "60" }
       # --- optional AI proposal service (falls back to a labelled deterministic agent)
-      - { key: REPLAY_MODE, value: "true" }    # set to "false" and add NVIDIA_API_KEY for live model proposals
+      - { key: REPLAY_MODE, value: "false" }   # model on when NVIDIA_API_KEY is a real key; otherwise the labelled deterministic agent is used
       - { key: AI_PROVIDER, value: nvidia }
       - { key: NVIDIA_API_KEY, sync: false }
       - { key: NVIDIA_BASE_URL, value: "https://integrate.api.nvidia.com/v1" }
