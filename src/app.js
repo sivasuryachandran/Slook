@@ -5,8 +5,9 @@ import { openDb } from './db.js';
 import { makeLedger, redactRun } from './ledger.js';
 import { createGate, GateError } from './gate.js';
 import { propose, validateProposal, checkRequestConsistency } from './proposal.js';
-import { compileIntent, buildSignedIntent, verifyIntent, signRevocation, verifyRevocation } from './intent.js';
-import { proposeOpenWorld, applyPoison, proposalTotal, AGENT_VERSION } from './agent.js';
+import { compileIntent, reconcileIntent, buildSignedIntent, verifyIntent, signRevocation, verifyRevocation } from './intent.js';
+import { createModelClient, MODEL_PROMPT_VERSION } from './model.js';
+import { candidatesFor, proposeFromCandidates, selectionPayload, applyModelSelection, applyPoison, proposalTotal, AGENT_VERSION } from './agent.js';
 import { runPreflight } from './preflight.js';
 import { createSigner } from './signing.js';
 import { customIdFor, newRunId } from './contract.js';
@@ -19,6 +20,7 @@ import { WebSocketServer } from 'ws';
 import { createSimulation } from './simulation.js';
 import { loadTraces, replayView, evaluateTrace } from './replay.js';
 
+const PUBLIC_DEMO_SCENARIOS = ['poisoned_proposal', 'revoke_before_capture'];
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
 const SENSITIVE = /email|given_name|surname|payer_id|phone|address_line|admin_area|postal_code|full_name|account_id|merchant_id|payee|client_secret|access_token|^name$/i;
 const redact = (v) => Array.isArray(v) ? v.map(redact)
@@ -30,6 +32,7 @@ export async function createApp(env = process.env, overrides = {}) {
   const killSwitch = env.KILL_SWITCH === 'true';
   const db = overrides.db ?? await openDb(env.DATABASE_URL);
   const bus = new EventEmitter(); bus.setMaxListeners(0);
+  const modelClient = overrides.modelClient !== undefined ? overrides.modelClient : createModelClient(env); // null => deterministic agent only
   const signer = createSigner(env); // the private key lives only inside this closure; agent modules never see it
   await db.query('INSERT INTO intent_keys(key_id, public_pem) VALUES($1,$2) ON CONFLICT (key_id) DO NOTHING', [signer.keyId, signer.publicPem]);
   if (signer.ephemeral && env.NODE_ENV === 'production') console.warn('INTENT_SIGNING_KEY not set: using an ephemeral key; contracts will not verify after a restart');
@@ -92,7 +95,19 @@ export async function createApp(env = process.env, overrides = {}) {
     if (!sc) throw httpErr(400, 'unknown scenario');
 
     // 1. natural language -> structured intent draft. No catalog or SKU is required.
-    const compiled = compileIntent(text, { history: await historyFor(ctx) });
+    // the simulation never calls the model (no cost, no latency, no key use)
+    const useModel = !!modelClient && ctx.mode !== 'MOCK_SIMULATION';
+    const aiEnv = useModel ? env : { ...env, REPLAY_MODE: 'true' };
+    const ai = { model: useModel ? modelClient.model : null, notes: [], compile: null, select: null, raw: {} };
+    let compiled = compileIntent(text, { history: await historyFor(ctx) });
+    if (useModel) {
+      try {
+        const m = await modelClient.compile(text);
+        const r = reconcileIntent(text, compiled, m.parsed);
+        compiled = r.compiled; ai.raw.compile = m.raw; ai.compile = { latency_ms: m.latency_ms, ...r.meta };
+        ai.notes.push(...r.meta.reasons);
+      } catch (e) { ai.compile = { used: 'deterministic', reasons: [e.message] }; ai.notes.push('compile: ' + e.message); }
+    }
     if (compiled.status === 'NEEDS_INFORMATION') return { status: 'NEEDS_INFORMATION', run_id: null, questions: compiled.questions, suggestions: compiled.suggestions };
     if (compiled.status === 'REQUIRE_APPROVAL' && !confirm) return { status: 'REQUIRE_APPROVAL', run_id: null, assumptions: compiled.assumptions, suggestions: compiled.suggestions, intent_draft: compiled.draft };
     const draft = compiled.draft;
@@ -100,7 +115,7 @@ export async function createApp(env = process.env, overrides = {}) {
     // 2. the agent proposes (catalog-backed agent for backpacks, open-world agent otherwise). It holds no keys and no PayPal client.
     let trace; let proposal;
     if (llm || catalogDomain(draft)) {
-      trace = await propose(text, env, llm);
+      trace = await propose(text, aiEnv, llm);
       const errs = [...validateProposal(trace.proposal), ...(trace.proposal ? checkRequestConsistency(text, trace.proposal) : [])];
       if (errs.length) throw httpErr(422, 'proposal rejected: ' + errs.join('; '));
       const p = trace.proposal;
@@ -109,12 +124,27 @@ export async function createApp(env = process.env, overrides = {}) {
       proposal = { line_items: [{ sku: p.sku, title: p.title, variant: p.variant, merchant: 'Trailhead Outfitters', quantity: p.quantity, unit_amount: p.unit_amount, unit: 'each' }],
         shipping_amount: p.shipping_amount, currency: p.currency, merchants: ['Trailhead Outfitters'], reasoning_summary: p.reasoning_summary, confidence: p.confidence, agent_version: 'catalog-agent' };
     } else {
-      const r = proposeOpenWorld(draft);
-      if (r.missing) return { status: 'NEEDS_INFORMATION', run_id: null, questions: [`I could not find a product matching: ${r.missing.join(', ')}. Can you describe it differently?`], suggestions: [] };
-      proposal = r.proposal;
-      trace = { provider: 'replay', model: 'deterministic-openworld-agent', prompt_version: AGENT_VERSION, input: { text }, raw_output: JSON.stringify(proposal), trace_mode: 'REPLAY_AGENT_TRACE', error: null };
+      const cands = candidatesFor(draft, { poison: sc.poison });
+      let usedModel = false;
+      if (useModel && cands.every((c) => c.candidates.length)) {
+        try {
+          const m = await modelClient.select(selectionPayload(draft, cands));
+          proposal = applyModelSelection(draft, cands, m.parsed);
+          ai.raw.select = m.raw; ai.select = { latency_ms: m.latency_ms, used: 'model' }; usedModel = true;
+        } catch (e) { ai.select = { used: 'deterministic', reasons: [e.message] }; ai.notes.push('select: model output unusable, deterministic agent used (' + e.message + ')'); }
+      }
+      if (!usedModel) {
+        const r = proposeFromCandidates(draft, cands);
+        if (r.missing) return { status: 'NEEDS_INFORMATION', run_id: null, questions: [`I could not find a product matching: ${r.missing.join(', ')}. Can you describe it differently?`], suggestions: [] };
+        proposal = r.proposal;
+      }
+      const liveUsed = usedModel || ai.compile?.used === 'model';
+      trace = { provider: liveUsed ? 'nvidia' : 'replay', model: liveUsed ? modelClient.model : 'deterministic-openworld-agent', prompt_version: liveUsed ? MODEL_PROMPT_VERSION : AGENT_VERSION,
+        input: { text, temperature: modelClient?.temperature ?? null, compile: ai.compile, select: ai.select }, raw_output: liveUsed ? JSON.stringify({ compile: ai.raw.compile ?? null, select: ai.raw.select ?? null }) : JSON.stringify(proposal),
+        trace_mode: liveUsed ? 'LIVE_AGENT_TRACE' : 'REPLAY_AGENT_TRACE', error: ai.notes.length ? ai.notes.join('; ') : null };
+      ai.live = liveUsed;
     }
-    if (sc.poison) proposal = applyPoison(proposal); // CONTROLLED TEST FIXTURE: injected instruction obeyed by the fixture agent
+    if (sc.poison) proposal = applyPoison(proposal, { modelUsed: !!ai.select && ai.select.used === 'model' }); // CONTROLLED TEST FIXTURE: injected instruction obeyed by the fixture agent
     proposal.total = proposalTotal(proposal);
 
     // 3. freeze + sign the user's authority BEFORE any PayPal object exists
@@ -147,7 +177,7 @@ export async function createApp(env = process.env, overrides = {}) {
       await db.query(`UPDATE runs SET status='PREFLIGHT_PASSED', preflight_decision='PASS', updated_at=now() WHERE id=$1`, [runId]);
     }
     return { status: pf.decision === 'BLOCK' ? 'BLOCKED' : 'READY', run_id: runId, proposal, trace_mode: trace.trace_mode, trace_error: trace.error, contract, scenario, fixture: scenario !== 'happy',
-      preflight: { decision: pf.decision, reason_codes: pf.reason_codes, assertions: pf.assertions }, hold: !!sc.hold };
+      preflight: { decision: pf.decision, reason_codes: pf.reason_codes, assertions: pf.assertions }, hold: !!sc.hold, ai };
   }
 
   async function svcCreateOrder(ctx, run) {
@@ -256,7 +286,8 @@ export async function createApp(env = process.env, overrides = {}) {
 
   app.post('/api/runs', limit(20), wrap(async (req, res) => {
     const scenario = req.body?.scenario ?? 'happy';
-    if (scenario !== 'happy' && env.INTERNAL_ACTION_KEY && req.get('x-internal-key') !== env.INTERNAL_ACTION_KEY) throw httpErr(401, 'fixtures require operator key');
+    // Paths A and B are harmless public demo paths (no PayPal mutation); other fixtures alter the PayPal order and need the operator key.
+    if (!PUBLIC_DEMO_SCENARIOS.includes(scenario) && scenario !== 'happy' && env.INTERNAL_ACTION_KEY && req.get('x-internal-key') !== env.INTERNAL_ACTION_KEY) throw httpErr(401, 'fixtures require operator key');
     const out = await svcCreateRun(main, { text: req.body?.request_text, scenario, llm: overrides.llm, confirm: req.body?.confirm === true });
     res.status(out.run_id ? 201 : 200).json(out);
   }));
@@ -340,7 +371,7 @@ export async function createApp(env = process.env, overrides = {}) {
   app.use('/api', (req, res) => res.status(404).json({ error: 'not found' }));
   app.use(express.static(PUBLIC));
   app.close = () => { app.wss?.close(); return db.close(); };
-  app.paypal = paypal; app.ledger = ledger; app.db = db; app.bus = bus; app.simulation = simulation;
+  app.modelClient = modelClient; app.paypal = paypal; app.ledger = ledger; app.db = db; app.bus = bus; app.simulation = simulation;
 
   // WebSockets only NOTIFY; the database remains the source of truth (clients re-fetch rows/stats).
   app.attachWebSocket = (server) => {

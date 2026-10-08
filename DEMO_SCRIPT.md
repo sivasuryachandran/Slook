@@ -18,4 +18,6 @@ Do not say: escrow, fraud-proof, guarantees, "real PayPal shoppers", out-of-proc
 
 Optional (10 s, only if time): click the microphone, say the cake request, edit the transcript, submit. "Voice only fills the text box; it follows the same signed path and cannot pay."
 
+On camera, point at the AI line on the proposal card: "Nemotron compiled the intent (grounded in my words, budget locked) and chose the products from untrusted merchant text. Prices come from product data. Here it declined the injection, so the test fixture adds the gift card so we can show the block." If the model ever does obey the injection on its own, the card says ORGANIC AGENT TRACE — say that is a real model failure.
+
 Numbers you may quote (from `reports/`): model schema-valid 76%, followed injected instructions in 9/10 adversarial prompts, 0 unsafe proposals accepted; simulation detected 100% of deliberate mismatches with 0 false blocks (mock harness).

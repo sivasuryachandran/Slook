@@ -137,3 +137,72 @@ export function itemMatches(requested, title, extraText = '') {
   return true;
 }
 export const moneyOk = (v) => { try { toCents(v); return true; } catch { return false; } };
+
+// ---- model-assisted compile: the model proposes a structured intent; deterministic code validates it.
+export const CATEGORIES = ['grocery', 'bakery', 'prepared_food', 'bags', 'apparel', 'electronics', 'other'];
+// Formatting variance from a model ("60", 60, "$60.00") is normalized to "60.00"; the VALUE must still equal the user's own budget exactly.
+export const normMoney = (v) => {
+  if (typeof v === 'number' && Number.isFinite(v)) v = v.toFixed(2);
+  if (typeof v !== 'string') return null;
+  const t = v.replace(/[$,\s]/g, '');
+  if (!/^\d+(\.\d{1,2})?$/.test(t)) return null;
+  return t.includes('.') ? t.padEnd(t.indexOf('.') + 3, '0') : t + '.00';
+};
+
+export function validateModelIntent(m) {
+  if (!m || typeof m !== 'object' || !Array.isArray(m.items) || m.items.length < 1 || m.items.length > 5) return 'items missing or out of range';
+  for (const i of m.items) {
+    if (!i || typeof i.description !== 'string' || !i.description.trim() || i.description.length > 60) return 'bad description';
+    if (i.category != null && !CATEGORIES.includes(i.category)) return 'bad category';
+    if (i.attributes != null && (typeof i.attributes !== 'object' || Object.values(i.attributes).some((v) => typeof v !== 'string'))) return 'bad attributes';
+    if (i.quantity != null && !(Number.isInteger(i.quantity.min) && Number.isInteger(i.quantity.max) && i.quantity.min >= 1 && i.quantity.max <= 1000 && i.quantity.min <= i.quantity.max)) return 'bad quantity';
+  }
+  if (m.max_total != null && normMoney(m.max_total) === null) return 'bad max_total';
+  if (m.delivery_deadline != null && (typeof m.delivery_deadline !== 'string' || m.delivery_deadline.length > 40)) return 'bad deadline';
+  return null;
+}
+const mentionedNumbers = (text) => {
+  const t = text.toLowerCase(); const set = new Set();
+  for (const m of t.matchAll(/\d+/g)) set.add(Number(m[0]));
+  for (const [w, n] of Object.entries(NUMS)) if (new RegExp(`\\b${w}\\b`).test(t)) set.add(n);
+  if (/\bdozen\b/.test(t)) for (const n of [...set, 1]) set.add(n * 12);
+  return set;
+};
+// `a` is the deterministic item, `b` the model's. A model quantity of null is compatible with the parser's assumed singular quantity of 1.
+const sameItem = (a, b) => tokens(a.description).sort().join(' ') === tokens(b.description).sort().join(' ')
+  && ((b.quantity == null && a.quantity?.min === 1 && a.quantity?.max === 1) || (a.quantity?.min === b.quantity?.min && a.quantity?.max === b.quantity?.max));
+// NOTE: the model's allow_substitutions flag is never used: authority is never widened by a model's guess.
+
+// Returns { compiled, meta }. The deterministic parse is the safety net; the model can enrich or rescue, never override the budget.
+export function reconcileIntent(text, det, parsed) {
+  const meta = { used: 'deterministic', agreement: null, reasons: [] };
+  const bad = validateModelIntent(parsed);
+  if (bad) { meta.reasons.push('model output rejected: ' + bad); return { compiled: det, meta }; }
+  const textTokens = new Set(tokens(text)); const nums = mentionedNumbers(text);
+  const budget = parseBudget(text);
+  if ((parsed.max_total ?? null) !== null && normMoney(parsed.max_total) !== budget) { meta.reasons.push(`model output rejected: max_total ${parsed.max_total} differs from the request's ${budget}`); return { compiled: det, meta }; }
+  for (const i of parsed.items) {
+    if (!tokens(i.description).every((w) => textTokens.has(w))) { meta.reasons.push(`model output rejected: "${i.description}" is not grounded in the request`); return { compiled: det, meta }; }
+    for (const v of Object.values(i.attributes ?? {})) if (!tokens(v).every((w) => textTokens.has(w))) { meta.reasons.push('model output rejected: attribute not grounded in the request'); return { compiled: det, meta }; }
+    if (i.quantity && i.quantity.min > 1 && (!nums.has(i.quantity.min) || !nums.has(i.quantity.max))) { meta.reasons.push('model output rejected: quantity not grounded in the request'); return { compiled: det, meta }; }
+  }
+  const grounded = (s) => typeof s === 'string' && tokens(s).every((w) => textTokens.has(w));
+  if (det.status === 'OK' || det.status === 'REQUIRE_APPROVAL') {
+    const dItems = det.draft.items;
+    const agrees = dItems.length === parsed.items.length && dItems.every((d) => parsed.items.some((m) => sameItem(d, m)));
+    if (!agrees) { meta.agreement = 'disagrees'; meta.reasons.push('model and deterministic parser disagree on items/quantities; deterministic parse kept'); return { compiled: det, meta }; }
+    meta.used = 'model'; meta.agreement = 'agrees';
+    for (const d of dItems) { const m = parsed.items.find((x) => sameItem(d, x)); if (m.category) d.category = m.category; }
+    if (!det.draft.delivery.deadline && grounded(parsed.delivery_deadline)) det.draft.delivery.deadline = parsed.delivery_deadline;
+    return { compiled: det, meta };
+  }
+  // deterministic parser needs information; the model may rescue unusual phrasing, but only with the user's confirmation
+  const complete = parsed.items.every((i) => i.quantity) && budget;
+  if (!complete) { meta.reasons.push('model could not complete the intent either'); return { compiled: det, meta }; }
+  const items = parsed.items.map((i) => ({ description: i.description.toLowerCase(), category: i.category ?? null, attributes: i.attributes ?? {}, quantity: i.quantity, unit: i.unit ?? null }));
+  const draft = { items, max_total: budget, currency: 'USD', merchant: null, delivery: { countries: ['US'], deadline: grounded(parsed.delivery_deadline) ? parsed.delivery_deadline : null },
+    allow_substitutions: /\b(or similar|substitut|any brand|equivalent)\b/i.test(text), request_text: String(text).trim().slice(0, 400) };
+  meta.used = 'model'; meta.agreement = 'rescued';
+  const summary = items.map((i) => `${i.quantity.min === i.quantity.max ? i.quantity.min : i.quantity.min + '-' + i.quantity.max}${i.unit ? ' ' + i.unit : ''} ${i.description}`).join(', ');
+  return { compiled: { status: 'REQUIRE_APPROVAL', draft, assumptions: [`I read your request as: ${summary}, up to ${budget} total. Confirm?`], suggestions: det.suggestions ?? [], questions: [] }, meta };
+}

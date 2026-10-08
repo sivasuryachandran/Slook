@@ -60,7 +60,7 @@ let holdGate = false; let pendingConfirm = false;
 const intentItems = (c) => c.items.map((i) => `${i.quantity ? (i.quantity.min === i.quantity.max ? i.quantity.min : i.quantity.min + '–' + i.quantity.max) : '?'}${i.unit ? ' ' + i.unit : ''} × ${i.description}${Object.keys(i.attributes ?? {}).length ? ' (' + Object.values(i.attributes).join(', ') + ')' : ''}`).join(' · ');
 
 $('go').onclick = async () => {
-  $('err').textContent = ''; $('go').disabled = true; $('assume').classList.add('hidden');
+  $('err').textContent = ''; $('go').disabled = true; $('assume').classList.add('hidden'); $('status').textContent = ''; $('err').textContent = cfg.aiLive ? 'The agent is working (model calls can take 5–10 seconds)…' : '';
   try {
     const headers = $('opkey').value ? { 'x-internal-key': $('opkey').value } : {};
     const r = await api('POST', '/api/runs', { request_text: $('req').value, scenario: $('scenario').value, confirm: pendingConfirm }, headers);
@@ -81,9 +81,14 @@ $('go').onclick = async () => {
       ['Delivery', (c.delivery.countries ?? []).join(',') + (c.delivery.deadline ? ' · ' + c.delivery.deadline : '')], ['Signature', `Ed25519 · ${c.key_id}`], ['Contract hash', c.contract_hash.slice(0, 22) + '…']]);
     $('proposalKv').innerHTML = p.line_items.map((l) => `<div><b>${esc(l.merchant)}</b><code>${esc(l.quantity)} × ${esc(l.title)}${l.variant ? ' (' + esc(l.variant) + ')' : ''} @ ${esc(l.unit_amount)}</code></div>`).join('')
       + kv([['Shipping', p.shipping_amount], ['Proposed total', `${p.total} ${p.currency}`]]);
+    $('err').textContent = '';
     $('reasoning').textContent = 'Agent: ' + p.reasoning_summary + (r.trace_error ? ' — ' + r.trace_error : '');
+    const ai = r.ai;
+    $('aiNote').textContent = ai?.model
+      ? `AI: ${ai.model} · intent: ${ai.compile?.used === 'model' ? 'model-assisted (' + ai.compile.agreement + ' with the deterministic parser)' : 'deterministic parser (model output not used)'}${ai.compile?.latency_ms ? ' · ' + ai.compile.latency_ms + ' ms' : ''} · product choice: ${ai.select?.used === 'model' ? 'model' : 'deterministic fallback'}${ai.select?.latency_ms ? ' · ' + ai.select.latency_ms + ' ms' : ''}. Prices always come from product data; the signed intent and gate decide.`
+      : 'AI: model off on this server (REPLAY_MODE). The deterministic agent proposed this order.';
     $('poison').classList.toggle('hidden', !p.source_content);
-    if (p.source_content) $('poisonText').textContent = `${p.source_content.label}: merchant page said — “${p.source_content.merchant_page_text}”`;
+    if (p.source_content) { const f = p.source_content.model_followed_injection; $('poisonText').textContent = `${p.source_content.label}: merchant page said — “${p.source_content.merchant_page_text}”` + (f === true ? ' The model obeyed this instruction on its own (a real model failure).' : f === false ? ' The model declined it; the test fixture added the gift card so the block can be demonstrated.' : ''); }
     const pf = r.preflight; const blocked = pf.decision === 'BLOCK';
     $('preflight').className = 'pf ' + (blocked ? 'bad' : 'ok');
     $('preflight').innerHTML = blocked

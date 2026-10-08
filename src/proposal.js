@@ -109,7 +109,8 @@ export async function propose(text, env, llm) {
       return { ...base, provider: 'test-stub', model: 'test-stub', raw_output: JSON.stringify(p), rejected_model_output: raw, proposal: p, trace_mode: 'REPLAY_AGENT_TRACE', error: `live agent output rejected, deterministic fallback used: ${e.message}` };
     }
   }
-  const hasKey = (env.AI_PROVIDER === 'nvidia' && env.NVIDIA_API_KEY) || (env.AI_PROVIDER === 'anthropic' && env.ANTHROPIC_API_KEY);
+  const real = (k) => !!k && !/^(unused|pending|none|replace-me)$/i.test(k);
+  const hasKey = (env.AI_PROVIDER === 'nvidia' && real(env.NVIDIA_API_KEY)) || (env.AI_PROVIDER === 'anthropic' && real(env.ANTHROPIC_API_KEY));
   if (hasKey && env.REPLAY_MODE !== 'true') {
     let rejectedRaw = null;
     try {

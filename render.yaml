@@ -29,6 +29,7 @@ services:
       - { key: NVIDIA_BASE_URL, value: "https://integrate.api.nvidia.com/v1" }
       - { key: NVIDIA_MODEL, value: "nvidia/nemotron-3.5-lightning-30b-a3b" }
       - { key: AI_TEMPERATURE, value: "0.2" }
+      - { key: AI_MAX_CALLS_PER_HOUR, value: "120" }   # caps model calls from the public demo
       # --- operator controls
       - { key: INTERNAL_ACTION_KEY, generateValue: true }
       - { key: SIM_MAX_ACTIVE, value: "300" }

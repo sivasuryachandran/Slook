@@ -16,10 +16,10 @@ The user's request becomes a signed intent (items, quantity ranges, maximum tota
 Every step is evidence in an AG Grid console (expected vs actual, signature check, PayPal IDs, idempotency keys, hash-chained ledger), labelled LIVE, MOCK or REPLAY.
 
 ## How we built it
-Node/Express, Postgres (embedded locally, Render in hosting), PayPal Sandbox Orders + Payments APIs with `PayPal-Request-Id` idempotency and webhooks, NVIDIA Nemotron for optional natural-language proposals (validated server-side, deterministic fallback), AG Grid Community for the evidence and live consoles, k6 and Playwright for load and browser tests, Postman collection for reproducibility. Optional voice input fills the text box only.
+Node/Express, Postgres (embedded locally, Render in hosting), PayPal Sandbox Orders + Payments APIs with `PayPal-Request-Id` idempotency and webhooks, NVIDIA Nemotron for two jobs (structured intent compile grounded in the user's words, and product selection from untrusted page data; prices always come from product data; everything validated server-side with a labelled deterministic fallback), AG Grid Community for the evidence and live consoles, k6 and Playwright for load and browser tests, Postman collection for reproducibility. Optional voice input fills the text box only.
 
 ## Challenges
-The model is not reliable: in our 50-scenario evaluation it produced schema-valid output 76% of the time and followed injected instructions in 9 of 10 adversarial prompts. The deterministic layer accepted 0 unsafe proposals. That is the point of the product: the model is never trusted to move money.
+The model is not reliable enough to trust with money: in our earlier 50-scenario evaluation it produced schema-valid output 76% of the time and followed injected instructions in 9 of 10 adversarial prompts (the deterministic layer accepted 0 unsafe proposals). With the final prompt and an untrusted-data warning it declined the gift-card injection in 6 of 6 live runs we recorded (a small sample), but a prompt is not a guarantee. That is the point of the product: the model proposes, a signed intent and a deterministic gate decide.
 
 ## Honest limits
 - Sandbox only; no production credentials or mode.
