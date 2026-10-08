@@ -231,7 +231,7 @@ async function loadActivity() { try { actRows = await api('GET', '/api/runs?limi
 
 /* =============================== receipt =============================== */
 const TL = { CONTRACT_FROZEN: ['Intent signed', 'info'], ORDER_CREATED: ['PayPal order created', 'info'], BUYER_APPROVED: ['Buyer approved in PayPal', 'info'], AUTHORIZED: ['PayPal authorized the order (no funds captured)', 'info'], INTENT_REVOKED: ['Intent revoked by the principal', 'warn'], GATE_EVALUATING: ['Gate fetched the order from PayPal and checked it', 'info'] };
-async function showReceipt(id) {
+async function showReceipt(id, attempt = 0) {
   const el = $('receipt'); el.innerHTML = '<div class="skeleton" style="height:180px"></div>'; grids.rcpt?.destroy(); grids.rcpt = null;
   try {
     const ev = await api('GET', `/api/runs/${id}/evidence`); const run = ev.run; const st = statusOf(run);
@@ -272,14 +272,16 @@ async function showReceipt(id) {
     const rows = ev.assertions.filter((a) => a.status !== 'INFO');
     grids.rcpt = agGrid.createGrid($('rcptGrid'), {
       columnDefs: [
-        { field: 'assertion_id', headerName: 'Check', width: 160, wrapText: true, autoHeight: true }, { field: 'stage', width: 120, valueFormatter: (p) => (p.value === 'PREFLIGHT' ? 'Preflight' : 'Gate') },
-        { field: 'status', width: 100, cellRenderer: (p) => `<span class="chip ${p.value === 'PASS' ? 'ok' : 'bad'}">${esc(p.value)}</span>`, cellStyle: { display: 'flex', alignItems: 'center' } },
-        { field: 'expected', flex: 1, minWidth: 170, wrapText: true, autoHeight: true }, { field: 'actual', flex: 1, minWidth: 170, wrapText: true, autoHeight: true, cellStyle: (p) => (p.data.status === 'FAIL' ? { color: 'var(--bad)', fontWeight: 650 } : null) },
+        { field: 'assertion_id', headerName: 'Check', flex: 1.1, minWidth: 120, wrapText: true, autoHeight: true }, { field: 'stage', flex: 0.7, minWidth: 80, valueFormatter: (p) => (p.value === 'PREFLIGHT' ? 'Preflight' : 'Gate') },
+        { field: 'status', flex: 0.7, minWidth: 84, cellClass: 'chipcell', cellRenderer: (p) => `<span class="chip ${p.value === 'PASS' ? 'ok' : 'bad'}">${esc(p.value)}</span>` },
+        { field: 'expected', flex: 1.5, minWidth: 110, wrapText: true, autoHeight: true }, { field: 'actual', flex: 1.5, minWidth: 110, wrapText: true, autoHeight: true, cellStyle: (p) => (p.data.status === 'FAIL' ? { color: 'var(--bad)', fontWeight: 650 } : null) },
       ], rowData: rows, domLayout: 'autoHeight', defaultColDef: { resizable: true, sortable: true },
       getRowStyle: (p) => (p.data.status === 'FAIL' ? { background: '#fdecec' } : undefined),
       onRowClicked: (e) => { const a = e.data; $('assertDetail').textContent = `${a.assertion_id} (${a.stage}): ${a.status}. ${a.explanation}. Expected ${a.expected}; reported ${a.actual}.`; },
     });
     $('printBtn').onclick = () => window.print(); $('copyLink').onclick = () => copy(location.href);
+    // PayPal's signed webhook arrives a few seconds after capture/void: refresh the receipt until it lands
+    if (d && !ev.webhooks.length && ev.mode === 'LIVE_SANDBOX' && attempt < 6) setTimeout(() => { if (location.hash === '#/run/' + id) showReceipt(id, attempt + 1); }, 4000);
   } catch (e) { el.innerHTML = `<div class="empty"><b>Receipt not found</b>${esc(e.message)}<div style="margin-top:12px"><a class="btn" href="#/activity">Back to activity</a></div></div>`; }
 }
 

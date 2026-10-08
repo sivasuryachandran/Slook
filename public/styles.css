@@ -131,3 +131,6 @@ pre.json{background:#0b1220;color:#d8e3f5;border-radius:10px;padding:14px;max-he
 }
 @media(max-width:520px){.g3,.g4,.g2{grid-template-columns:1fr}.amount{font-size:28px}}
 @media print{.side,.top,.env-banner,footer.site,.noprint,#toasts{display:none!important}.app{display:block}.view{padding:0;max-width:none}.card,.stat{box-shadow:none}body{background:#fff}}
+
+.chipcell{display:flex;align-items:center}
+.ag-theme-quartz .ag-cell{line-height:1.35}
