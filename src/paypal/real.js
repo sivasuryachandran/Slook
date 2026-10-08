@@ -2,6 +2,7 @@
 const SANDBOX = 'https://api-m.sandbox.paypal.com';
 
 export function createRealPayPal({ clientId, clientSecret, webhookId, env = 'sandbox', baseUrl }) {
+  clientId = clientId?.trim(); clientSecret = clientSecret?.trim(); webhookId = webhookId?.trim(); // dashboards often add stray whitespace/newlines
   if (env !== 'sandbox') throw new Error('Slook is Sandbox-only (PAYPAL_ENV must be "sandbox")');
   // The only permitted override is a loopback mock used by contract tests.
   if (baseUrl && !/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(baseUrl)) throw new Error('baseUrl override must be loopback');
@@ -17,7 +18,7 @@ export function createRealPayPal({ clientId, clientSecret, webhookId, env = 'san
       body: 'grant_type=client_credentials',
     });
     const body = await res.json();
-    if (!res.ok) throw new Error(`PayPal OAuth failed (${res.status})`);
+    if (!res.ok) { console.error(`PayPal OAuth failed (HTTP ${res.status}): check PAYPAL_CLIENT_ID / PAYPAL_CLIENT_SECRET match a Sandbox app`); throw Object.assign(new Error(`PayPal authentication failed (HTTP ${res.status})`), { status: 502 }); }
     token = body.access_token;
     tokenExp = Date.now() + body.expires_in * 1000;
     return token;
