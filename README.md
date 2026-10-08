@@ -25,7 +25,7 @@ Every path writes evidence to an AG Grid console: signed intent, agent proposal,
 |---|---|
 | **LIVE SANDBOX** | Real PayPal Sandbox API calls, manual buyer approval. Test money only. |
 | **REPLAY** | Simulated PayPal adapter or saved trace. No PayPal call. Default for anyone without credentials. |
-| **MOCK** | Real-time simulation of many shoppers against an in-process PayPal-compatible mock (`/live.html`). Never reaches real PayPal, even if `LIVE_PAYPAL=true`. |
+| **MOCK** | The internal load-test harness only (many mock shoppers against an in-process PayPal-compatible mock). Never reaches real PayPal, even if `LIVE_PAYPAL=true`; off in production. |
 | `CONTROLLED TEST FIXTURE` | A deliberately altered proposal or order. Not an organic agent failure. |
 | `ORGANIC AGENT TRACE` | The model itself obeyed the injected instruction (it added the gift card without the fixture). The system labels this automatically if it happens. **In our live Path A runs with the current prompt the model never obeyed the injection (6 of 6 in the saved final run, `reports/model-demo.json`; an earlier 4-run pass had 3 declines and 1 fallback to the deterministic agent), so no organic trace is saved**; the fixture then adds the gift card so the block can be shown, and the UI says so. An earlier 50-scenario eval with a plainer prompt (`reports/ai-eval.json`) did show the model following injections in 9 of 10 adversarial cases. |
 
@@ -49,13 +49,23 @@ No SKU or catalog is required. "Buy 12 donuts and 3 kg of grapes for Friday morn
 - Voice input only fills the text box. Spoken "yes, pay" is rejected client- and server-side and never approves anything.
 - Secrets stay server-side and out of git (`.env` is ignored; `npm run scan:secrets` scans the tree and history). **There is no production mode and no production credential path.** Rotate any credential that has ever been pasted into a chat or log.
 
+## The web app
+A single-page app (no login: it is a single-workspace Sandbox demo) with five views: **Overview** (real totals captured, voided, blocked and value stopped, outcome mix, reasons in plain language), **New purchase** (guided steps: request, signed intent and agent proposal, PayPal approval, verification, settlement), **Activity** (every transaction in AG Grid, live over WebSocket, filter and search), **Receipt** (statement-style page per purchase: line items, verification table of expected vs. what PayPal reported, signed intent, PayPal IDs, timeline, raw evidence, printable) and **Security** (what holds, how the workspace is configured, and what is not claimed). Everything shown comes from the server's real records; with Sandbox credentials those are real PayPal Sandbox orders and webhooks. Without credentials the app runs in a clearly labelled **Demo mode** (simulated PayPal, no calls). The merchants and products are demo data, not live stores.
+
+## Load-test harness (internal tooling, not a product feature)
+`/api/simulation/runs` can drive many MOCK shoppers through the same gate for load testing (k6). It is **disabled in production** unless `ENABLE_SIMULATION=true`, never reaches real PayPal, never calls the model, and does not appear in the UI. Its measured results (`REALTIME_SIMULATION_REPORT.md`) describe a PayPal-compatible mock harness, not real PayPal performance.
+```bash
+ENABLE_SIMULATION=true npm start
+k6 run -e BASE_URL=http://localhost:3000 -e PROFILE=demo tests/load/shoppers.js   # smoke|demo|normal|stress|spike|soak
+node scripts/run-load.js normal     # spawns a server, runs k6, writes reports/load-normal.json
+```
+
 ## Local setup (no credentials needed)
 ```bash
 npm install
 npm start                       # http://localhost:3000   (REPLAY adapter; embedded Postgres)
-# Live Runs (MOCK simulation): http://localhost:3000/live.html
 ```
-Single-run flow: pick **Path A / Path B / (Matching order = Path C)**, ask, create order, "Simulate buyer approval (REPLAY)". Path B shows **Revoke intent** and **Run the gate** buttons between authorization and capture.
+Open **New purchase**, ask, create the order, then "Simulate buyer approval (demo mode)". Under *Sandbox safety scenarios* choose **Path A** (poisoned proposal) or **Path B** (revoke before capture); Path B shows **Revoke intent** and **Run the gate** buttons between authorization and capture.
 
 ## PayPal Sandbox setup (LIVE)
 1. Create a Sandbox REST app and a Sandbox *personal* buyer account with a **US address** (the gate fails closed when the ship-to country is missing or outside the intent).
@@ -64,7 +74,7 @@ Single-run flow: pick **Path A / Path B / (Matching order = Path C)**, ask, crea
 4. Webhooks need a public URL: register `https://<host>/api/webhooks/paypal` for `PAYMENT.CAPTURE.COMPLETED` and `PAYMENT.AUTHORIZATION.VOIDED`, then set `PAYPAL_WEBHOOK_ID`.
 5. Live proof runner (prints an approval link per row, you click, it asserts): `npm run live:matrix` → `reports/live-matrix.json` (Path A ×1, Path B ×3, Path C ×3, plus mutations). **Not yet run live in this repo; see Status.**
 
-**Public demo paths.** Path A (poisoned proposal) and Path B (revoke before capture) do not alter any PayPal order, so they are available without the operator key. Fixtures that mutate the PayPal order (price, quantity, SKU, country) and more than 25 simulated shoppers per request still require `INTERNAL_ACTION_KEY`; anyone can still run the matching order and the 25-shopper mock simulation.
+**Public demo paths.** Path A (poisoned proposal) and Path B (revoke before capture) do not alter any PayPal order, so they are available without the operator key. Fixtures that mutate the PayPal order (price, quantity, SKU, country) still require `INTERNAL_ACTION_KEY`; anyone can run the standard purchase.
 
 ## Commands
 ```bash
@@ -86,7 +96,7 @@ npm run scan:secrets              # fails if any .env value appears in the tree 
 `postman/slook-sandbox.json`: a folder for the Slook API (all three paths, evidence lookup, simulation) and a folder with the direct PayPal Sandbox calls the server and gate make (token, create, authorize, fresh GET, capture, void). Credentials are collection variables you fill in; none are stored. There is no Slook capture/void route by design.
 
 ## Status (what is verified and what is not)
-- Automated (latest run): `npm test` = 89 tests, 83 pass, 0 fail, 6 skipped by design (real-Sandbox tests, opt-in); `npm run test:browser` = 11 Playwright tests (5 concurrent live-grid browsers, evidence trace, 5 voice-input tests), all passing on 15 of 16 recent runs (one run immediately after the unit suite had failures we could not attribute; suspected CPU timing). Real PayPal Sandbox, **verified non-interactively**: OAuth, `AUTHORIZE` create, idempotent re-create, order GET preserves custom_id/sku/items/amounts for an open-world two-item order, authorizing an unapproved order is refused, a poisoned proposal makes zero PayPal calls.
+- Automated (latest run): `npm test` = 89 tests, 83 pass, 0 fail, 6 skipped by design (real-Sandbox tests, opt-in); `npm run test:browser` = 14 Playwright tests (5 concurrent browsers watching Activity update live, the full purchase flow, a poisoned-proposal flow, overview/security/mobile layout, 5 voice-input tests), passing on 3 consecutive runs after the redesign. Real PayPal Sandbox, **verified non-interactively**: OAuth, `AUTHORIZE` create, idempotent re-create, order GET preserves custom_id/sku/items/amounts for an open-world two-item order, authorizing an unapproved order is refused, a poisoned proposal makes zero PayPal calls.
 - **Verified live on real PayPal Sandbox (2026-10-08, `reports/live-matrix.json`, 11/11 passed):** Path A blocked before PayPal (0 PayPal calls); Path B ×3 authorize → revoke → fresh GET → **void** (`intent.revoked`); Path C ×3 authorize → fresh GET → **capture**; and four mutations on real orders, each **voided** by the gate: price (`amount.total`, `items.unit_amount`), quantity (`items.quantity`), SKU (`items.sku`, `items.variant`, `items.unrequested`, `policy.substitution`) and shipping country (`shipping.country`, a Canada ship-to read back from PayPal). Rows 2–7 were approved by hand in the Sandbox popup; rows 8–11 were approved by a scripted login as the Sandbox buyer. Each live row recorded exactly one PayPal action, retries returned the stored decision with no duplicate, and the hash-chained ledger verified. These ran against a temporary in-memory instance, so the evidence rows are in the JSON report and PayPal's Sandbox activity, not in a persistent dashboard.
 - **Verified on the deployed Render app (https://slook-g7dn.onrender.com, Postgres, LIVE_SANDBOX, `reports/live-hosted.json`, 2/2 passed):** a clean capture and a revoke-then-void, each with a real PayPal **signed webhook** delivered to `/api/webhooks/paypal`, verified through PayPal's `verify-webhook-signature` API, stored once, and reconciling the run (`PAYMENT.CAPTURE.COMPLETED` and `PAYMENT.AUTHORIZATION.VOIDED`). Both runs were approved through a scripted Sandbox buyer login.
 - **Still UNVERIFIED:** the PayPal-popup (JS SDK Buttons) path from the UI, as opposed to the approval-link path the matrices use; the model integration on the *deployed* app (it was verified locally against the real NVIDIA API; the deployed instance needs `REPLAY_MODE=false` and a real key); and load behaviour on Render (the load numbers are from a laptop with embedded Postgres; a 25-shopper mock run on the free Render instance showed a much higher gate p95, about 2.8 s, from database latency).

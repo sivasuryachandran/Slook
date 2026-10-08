@@ -6,7 +6,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 const profile = process.argv[2] || 'smoke';
 const port = 3400 + Math.floor(Math.random() * 500);
 const base = `http://127.0.0.1:${port}`;
-const env = { ...process.env, PORT: String(port), LIVE_PAYPAL: 'false', REPLAY_MODE: 'true', SIM_RATE_LIMIT: '100000000', SIM_MAX_ACTIVE: '5000', NODE_ENV: 'production' };
+const env = { ...process.env, ENABLE_SIMULATION: 'true', PORT: String(port), LIVE_PAYPAL: 'false', REPLAY_MODE: 'true', SIM_RATE_LIMIT: '100000000', SIM_MAX_ACTIVE: '5000', NODE_ENV: 'production' };
 delete env.NVIDIA_API_KEY; delete env.PAYPAL_CLIENT_SECRET; // load tests never need credentials
 const srv = spawn('node', ['src/server.js'], { env, stdio: 'ignore' });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

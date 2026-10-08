@@ -248,6 +248,8 @@ export async function createApp(env = process.env, overrides = {}) {
     await ctx.ledger.event(run.id, 'BUYER_APPROVED', { simulated: true });
   }
 
+  // The load-test harness is internal tooling, not a product feature: off in production unless ENABLE_SIMULATION=true.
+  const simEnabled = env.ENABLE_SIMULATION === 'true' || (env.NODE_ENV !== 'production' && env.ENABLE_SIMULATION !== 'false');
   const simulation = createSimulation({ db, bus, env, sim, svc: { createRun: svcCreateRun, createOrder: svcCreateOrder, authorize: svcAuthorize, approve: svcSimulateApproval, revoke: svcRevoke, evaluate: (ctx, id) => ctx.gate.evaluate(id) } });
 
   // ---- app
@@ -256,6 +258,7 @@ export async function createApp(env = process.env, overrides = {}) {
   app.use(express.json({ limit: '100kb' }));
   app.use((req, res, next) => { res.set('X-Content-Type-Options', 'nosniff'); next(); });
 
+  const RATE = Number(env.RATE_LIMIT_PER_MIN || 20); // per IP per route per minute
   const hits = new Map();
   const limit = (max) => (req, res, next) => {
     const k = req.ip + req.path.replace(/run_\w+/, ':id');
@@ -281,10 +284,12 @@ export async function createApp(env = process.env, overrides = {}) {
     mode, banner, replay: isReplay, killSwitch, paypalClientId: isReplay ? null : env.PAYPAL_CLIENT_ID,
     scenarios: Object.fromEntries(Object.entries(SCENARIOS).map(([k, s]) => [k, s.label])),
     fixturesNeedKey: !!env.INTERNAL_ACTION_KEY, aiLive: !!(env.NVIDIA_API_KEY || env.ANTHROPIC_API_KEY) && env.REPLAY_MODE !== 'true',
-    simulation: { mode: 'MOCK_SIMULATION', maxUnauthenticated: simulation.limits.unauthenticated, maxWithKey: simulation.limits.withKey, needsKeyAbove: !!env.INTERNAL_ACTION_KEY },
+    simulation: simEnabled ? { mode: 'MOCK_SIMULATION', maxUnauthenticated: simulation.limits.unauthenticated, maxWithKey: simulation.limits.withKey, needsKeyAbove: !!env.INTERNAL_ACTION_KEY } : null,
+    security: { keyId: signer.keyId, algorithm: 'Ed25519', ephemeralKey: signer.ephemeral, webhookConfigured: !!env.PAYPAL_WEBHOOK_ID && !/^(pending|unused|none)$/i.test(env.PAYPAL_WEBHOOK_ID), db: db.kind },
+    ai: { enabled: !!modelClient, model: modelClient?.model ?? null },
   }));
 
-  app.post('/api/runs', limit(20), wrap(async (req, res) => {
+  app.post('/api/runs', limit(RATE), wrap(async (req, res) => {
     const scenario = req.body?.scenario ?? 'happy';
     // Paths A and B are harmless public demo paths (no PayPal mutation); other fixtures alter the PayPal order and need the operator key.
     if (!PUBLIC_DEMO_SCENARIOS.includes(scenario) && scenario !== 'happy' && env.INTERNAL_ACTION_KEY && req.get('x-internal-key') !== env.INTERNAL_ACTION_KEY) throw httpErr(401, 'fixtures require operator key');
@@ -292,38 +297,52 @@ export async function createApp(env = process.env, overrides = {}) {
     res.status(out.run_id ? 201 : 200).json(out);
   }));
 
-  app.post('/api/runs/:runId/paypal/order', limit(20), wrap(async (req, res) => {
+  app.post('/api/runs/:runId/paypal/order', limit(RATE), wrap(async (req, res) => {
     const run = await needRun(req.params.runId);
     const out = await svcCreateOrder(main, run);
     res.status(out.status).json(out.body);
   }));
 
   // replay only: stands in for the buyer clicking Approve in the PayPal popup
-  app.post('/api/runs/:runId/replay/approve', limit(20), wrap(async (req, res) => {
+  app.post('/api/runs/:runId/replay/approve', limit(RATE), wrap(async (req, res) => {
     if (!isReplay) throw httpErr(404, 'not found');
     await svcSimulateApproval(main, await needRun(req.params.runId));
     res.json({ approved: true, simulated: true });
   }));
 
-  app.post('/api/runs/:runId/paypal/authorize', limit(20), wrap(async (req, res) => {
+  app.post('/api/runs/:runId/paypal/authorize', limit(RATE), wrap(async (req, res) => {
     const decision = await svcAuthorize(main, await needRun(req.params.runId), req.body?.orderID, { deferGate: req.body?.defer_gate === true });
     res.json({ decision, authorized: true, gate_pending: decision === null });
   }));
 
-  app.post('/api/runs/:runId/intent/revoke', limit(20), wrap(async (req, res) => {
+  app.post('/api/runs/:runId/intent/revoke', limit(RATE), wrap(async (req, res) => {
     const rev = await svcRevoke(main, await needRun(req.params.runId), req.body?.reason);
     res.json({ revoked: true, revoked_at: rev.revoked_at });
   }));
 
-  app.post('/api/runs/:runId/evaluate', limit(20), wrap(async (req, res) => {
+  app.post('/api/runs/:runId/evaluate', limit(RATE), wrap(async (req, res) => {
     await needRun(req.params.runId);
     res.json({ decision: await main.gate.evaluate(req.params.runId) });
   }));
 
   app.get('/api/runs', wrap(async (req, res) => {
-    const rows = (await db.query(`SELECT r.id,r.status,r.request_text,r.final_decision,r.scenario,r.mode,r.contract_hash,r.paypal_order_id,r.authorization_id,r.created_at,
-      d.reason_codes FROM runs r LEFT JOIN decisions d ON d.run_id=r.id WHERE r.mode=$1 ORDER BY r.created_at DESC LIMIT 100`, [main.mode])).rows;
+    const rows = (await db.query(`SELECT r.id,r.status,r.request_text,r.final_decision,r.scenario,r.mode,r.contract_hash,r.paypal_order_id,r.authorization_id,r.created_at,r.updated_at,
+      (r.proposal_json->>'total') AS total, r.proposal_json->'merchants' AS merchants, r.proposal_json->>'currency' AS currency,
+      d.reason_codes FROM runs r LEFT JOIN decisions d ON d.run_id=r.id WHERE r.mode=$1 ORDER BY r.created_at DESC LIMIT $2`, [main.mode, Math.min(Number(req.query.limit) || 100, 500)])).rows;
     res.json(rows);
+  }));
+  // Real activity only: aggregates over runs made through the product (never the load-test harness).
+  app.get('/api/dashboard', wrap(async (req, res) => {
+    const agg = (await db.query(`SELECT COALESCE(final_decision,'IN_PROGRESS') AS d, count(*)::int AS n, COALESCE(sum((proposal_json->>'total')::numeric),0)::float AS amt
+      FROM runs WHERE mode=$1 GROUP BY 1`, [main.mode])).rows;
+    const by = Object.fromEntries(agg.map((r) => [r.d, r]));
+    const get = (k) => ({ count: by[k]?.n ?? 0, amount: Math.round((by[k]?.amt ?? 0) * 100) / 100 });
+    const webhooks = (await db.query(`SELECT count(*) FILTER (WHERE verified)::int AS ok, count(*)::int AS total FROM webhook_events w JOIN runs r ON r.id=w.run_id WHERE r.mode=$1`, [main.mode])).rows[0];
+    const reasons = (await db.query(`SELECT c, count(*)::int AS n FROM (SELECT jsonb_array_elements_text(d.reason_codes) AS c FROM runs r JOIN decisions d ON d.run_id=r.id WHERE r.mode=$1 AND d.decision <> 'CAPTURE') x GROUP BY c ORDER BY n DESC LIMIT 6`, [main.mode])).rows;
+    const total = agg.reduce((s, r) => s + r.n, 0);
+    const stopped = get('VOID').amount + get('BLOCK').amount;
+    res.json({ mode: main.mode, total, captured: get('CAPTURE'), voided: get('VOID'), blocked: get('BLOCK'), in_progress: get('IN_PROGRESS'),
+      value_stopped: Math.round(stopped * 100) / 100, webhooks, top_reasons: reasons });
   }));
   app.get('/api/runs/:runId', wrap(async (req, res) => {
     const run = await ledger.getRun(req.params.runId);
@@ -340,7 +359,8 @@ export async function createApp(env = process.env, overrides = {}) {
     res.json(ev);
   }));
 
-  // ---- real-time simulation (operator-limited; mock PayPal only)
+  // ---- load-test harness (operator-limited; mock PayPal only; disabled in production)
+  app.use('/api/simulation', (req, res, next) => (simEnabled ? next() : res.status(404).json({ error: 'not found' })));
   app.post('/api/simulation/runs', limit(Number(env.SIM_RATE_LIMIT || 600)), wrap(async (req, res) => {
     const out = await simulation.start({ ...req.body, key: req.get('x-internal-key') });
     res.status(202).json(out);

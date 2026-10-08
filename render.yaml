@@ -32,7 +32,6 @@ services:
       - { key: AI_MAX_CALLS_PER_HOUR, value: "120" }   # caps model calls from the public demo
       # --- operator controls
       - { key: INTERNAL_ACTION_KEY, generateValue: true }
-      - { key: SIM_MAX_ACTIVE, value: "300" }
 databases:
   - name: slook-db
     plan: free

@@ -4,125 +4,139 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Slook</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%230f766e' stroke-width='4'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%230f766e'/%3E%3C/svg%3E">
-<style>
-:root{--bg:#f5f6f8;--card:#fff;--ink:#14181f;--mute:#5b6572;--line:#dfe3e8;--ok:#0f766e;--okbg:#e6f6f3;--bad:#b42318;--badbg:#fdecea;--warn:#8a5a00;--warnbg:#fff4d6;--acc:#1d4ed8}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
-header{background:#0f172a;color:#fff;padding:14px 16px}
-header .row{max-width:1180px;margin:0 auto;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
-header h1{margin:0;font-size:20px}header span{color:#9fb0c8;font-size:14px}
-#banner{padding:7px 16px;font-size:13px;font-weight:600;text-align:center}
-#banner.replay{background:var(--warnbg);color:var(--warn)}#banner.live{background:#e0ecff;color:#1e3a8a}
-main{max-width:1180px;margin:0 auto;padding:16px;display:grid;gap:16px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
-.card h2{margin:0 0 10px;font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:var(--mute)}
-label{font-size:13px;color:var(--mute);display:block;margin-bottom:4px}
-input,select,button{font:inherit}
-input[type=text],select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:7px;background:#fff}
-.grid2{display:grid;gap:12px;grid-template-columns:2fr 1fr}
-button.primary{background:var(--acc);color:#fff;border:0;border-radius:7px;padding:10px 16px;cursor:pointer;font-weight:600}
-button.primary:disabled{opacity:.5;cursor:not-allowed}
-button.ghost.on{background:#0f172a;color:#fff}
-button.ghost{background:#fff;border:1px solid var(--line);border-radius:7px;padding:8px 12px;cursor:pointer}
-.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
-.kv div{background:var(--bg);border-radius:8px;padding:8px 10px;min-width:0}
-.kv b{display:block;font-size:12px;color:var(--mute);font-weight:600}
-.kv code{font-size:12.5px;word-break:break-all}
-.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:700}
-.pill.fixture{background:var(--warnbg);color:var(--warn)}.pill.live{background:#e0ecff;color:#1e3a8a}.pill.replay{background:var(--warnbg);color:var(--warn)}
-.pill.fresh{background:var(--okbg);color:var(--ok)}
-#decision{border-radius:10px;padding:18px;display:none}
-#decision.CAPTURE{background:var(--okbg);border:2px solid var(--ok)}#decision.VOID{background:var(--badbg);border:2px solid var(--bad)}
-#decision h3{margin:0 0 4px;font-size:24px}#decision.CAPTURE h3{color:var(--ok)}#decision.VOID h3{color:var(--bad)}
-.moved{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-.moved div{background:rgba(255,255,255,.7);border-radius:8px;padding:8px 10px;font-size:14px}
-.mic{border:1px solid var(--line);background:#fff;border-radius:7px;padding:0 12px;cursor:pointer;font:inherit}.mic.on{background:#b42318;color:#fff;border-color:#b42318}
-.hidden{display:none!important}
-.pf{border-radius:8px;padding:10px 12px;font-size:14px}.pf.ok{background:var(--okbg);color:var(--ok)}.pf.bad{background:var(--badbg);color:var(--bad)}.pf:empty{display:none}
-.muted{color:var(--mute);font-size:13px}
-.steps{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-#paypal-buttons{max-width:340px}
-.ag-theme-quartz,.grid{width:100%}
-.fail-cell{color:var(--bad);font-weight:700}.pass-cell{color:var(--ok);font-weight:700}
-@media(max-width:700px){.grid2,.moved{grid-template-columns:1fr}}
-</style>
+<meta name="description" content="Slook: agents propose, signed intent decides. A PayPal-native intent gate for autonomous commerce (Sandbox).">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231d5fe0'/%3E%3Ccircle cx='16' cy='16' r='7' fill='none' stroke='white' stroke-width='3'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<header><div class="row"><h1>Slook</h1><span>An authorization firewall for AI commerce — catch the mismatch before money moves.</span><a href="/live.html" style="margin-left:auto;color:#9fc2ff;font-size:14px">Live Runs →</a></div></header>
-<div id="banner">Loading…</div>
-<main>
-  <section class="card">
-    <h2>1 · Shopper request</h2>
-    <div class="grid2">
-      <div><label for="req">What should the agent buy?</label>
-        <div style="display:flex;gap:8px"><input id="req" type="text" value="Buy one black travel backpack under $90 delivered" maxlength="300" style="flex:1">
-          <button id="micBtn" type="button" class="mic" aria-label="Optional voice input" aria-pressed="false" title="Optional voice input (speech to text)">🎤 Voice</button></div>
-        <div id="voiceNote" class="muted" style="margin-top:4px">Optional voice input: speech is transcribed into this box, you edit it, and it follows the same signed-intent path as typing. It cannot approve or pay.</div></div>
-      <div><label for="scenario">Order preparation</label><select id="scenario"></select></div>
-    </div>
-    <div id="keyrow" class="hidden" style="margin-top:10px"><label for="opkey">Operator key (required for test fixtures)</label><input id="opkey" type="text" autocomplete="off"></div>
-    <p style="margin:12px 0 0"><button id="go" class="primary">Ask the agent</button> <span id="err" class="muted" style="color:var(--bad)"></span></p>
-  </section>
+<a class="skip" href="#view">Skip to content</a>
+<div class="app">
+  <aside class="side" id="side" aria-label="Primary">
+    <div class="brand"><svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#1d5fe0"/><circle cx="16" cy="16" r="7" fill="none" stroke="#fff" stroke-width="3"/><circle cx="16" cy="16" r="2.5" fill="#fff"/></svg>Slook</div>
+    <nav class="nav" aria-label="Main">
+      <a href="#/" data-route="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Overview</a>
+      <a href="#/new" data-route="new"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>New purchase</a>
+      <a href="#/activity" data-route="activity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Activity</a>
+      <a href="#/security" data-route="security"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>Security</a>
+    </nav>
+    <div class="foot"><div><b id="footMode">…</b></div><div id="footKey" class="mono" style="color:#93a6c4"></div><div style="margin-top:6px">Sandbox only. Never real money.</div></div>
+  </aside>
+  <div class="main">
+    <header class="top">
+      <button class="btn sm" id="menuBtn" aria-label="Open menu" aria-expanded="false">☰</button>
+      <h1 id="pageTitle">Overview</h1><span class="grow"></span>
+      <span class="chip info" id="envPill">…</span>
+      <div class="avatar"><i>DU</i><span>Demo user · Sandbox workspace</span></div>
+    </header>
+    <div id="envBanner" class="env-banner" role="status"></div>
 
-  <section class="card hidden" id="assume" style="border-color:#8a5a00">
-    <h2>Confirm before I sign anything</h2>
-    <p id="assumeText" style="margin:0 0 10px"></p>
-    <button id="confirmBtn" class="primary">Confirm and continue</button>
-    <span class="muted"> History only suggests a default. It never silently expands what you authorize.</span>
-  </section>
+    <main id="view" tabindex="-1">
+      <!-- ================= OVERVIEW ================= -->
+      <section class="view" id="v-overview" aria-labelledby="h-overview">
+        <h2 class="page" id="h-overview">Overview</h2>
+        <p class="lead">Every purchase an AI agent proposes is checked against your signed intent before PayPal can capture a cent. This is the live record of what was settled, voided and blocked.</p>
+        <div class="grid g4" id="stats"><div class="stat skeleton" style="height:92px"></div><div class="stat skeleton" style="height:92px"></div><div class="stat skeleton" style="height:92px"></div><div class="stat skeleton" style="height:92px"></div></div>
+        <div class="grid g-main" style="margin-top:16px">
+          <div class="card"><h3>Recent activity <span class="right"><a href="#/activity">View all →</a></span></h3><div id="recent"></div></div>
+          <div class="stack">
+            <div class="card"><h3>Outcomes</h3><div id="mix"></div></div>
+            <div class="card"><h3>Why payments were stopped</h3><div id="reasons" class="small muted">No stopped payments yet.</div></div>
+            <div class="card"><h3>Start here</h3><p class="small muted" style="margin-top:0">Describe what the agent should buy and your maximum total. Try one:</p><div class="chips" id="examples"></div><div style="margin-top:12px"><a class="btn primary" href="#/new">New purchase</a></div></div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px"><h3>How Slook protects each payment</h3>
+          <div class="grid g4">
+            <div><b>1 · Sign your intent</b><p class="small muted" style="margin:4px 0 0">Your request becomes a signed contract: items, quantity, maximum total, expiry.</p></div>
+            <div><b>2 · Agent proposes</b><p class="small muted" style="margin:4px 0 0">An AI agent chooses products. It holds no keys and cannot move money.</p></div>
+            <div><b>3 · Preflight &amp; authorize</b><p class="small muted" style="margin:4px 0 0">Anything outside your intent is blocked before a PayPal order exists. Otherwise PayPal authorizes.</p></div>
+            <div><b>4 · Verify, then settle</b><p class="small muted" style="margin:4px 0 0">The gate re-fetches the order from PayPal and only then captures, or voids.</p></div>
+          </div>
+        </div>
+      </section>
 
-  <section class="card hidden" id="proposalCard">
-    <h2>2 · Signed intent → agent proposal → preflight</h2>
-    <p style="margin:0 0 10px"><span id="traceMode" class="pill"></span> <span id="fixtureTag" class="pill fixture hidden">CONTROLLED TEST FIXTURE — the agent output or the PayPal order is deliberately altered</span></p>
-    <div class="kv" id="intentKv"></div>
-    <h2 style="margin-top:14px">Agent proposal</h2>
-    <div class="kv" id="proposalKv"></div>
-    <p class="muted" id="reasoning"></p>
-    <p class="muted" id="aiNote" style="margin-top:-6px"></p>
-    <p id="poison" class="hidden" style="background:var(--warnbg);color:var(--warn);border-radius:8px;padding:8px 10px;font-size:13px"><span id="poisonText"></span></p>
-    <div id="preflight" class="pf"></div>
-    <div class="steps" id="approveArea" style="margin-top:12px">
-      <button id="orderBtn" class="primary">Create PayPal order</button>
-      <div id="paypal-buttons" class="hidden"></div>
-      <button id="approveBtn" class="primary hidden">Simulate buyer approval (REPLAY)</button>
-    </div>
-    <div id="afterAuth" class="steps hidden" style="margin-top:12px">
-      <button id="revokeBtn" class="primary" style="background:#b42318">Revoke intent</button>
-      <button id="gateBtn" class="primary">Run the gate (fresh PayPal fetch)</button>
-    </div>
-    <p id="status" class="muted"></p>
-  </section>
+      <!-- ================= NEW PURCHASE ================= -->
+      <section class="view hidden" id="v-new" aria-labelledby="h-new">
+        <h2 class="page" id="h-new">New purchase</h2>
+        <p class="lead">Tell the agent what to buy and the most you will pay. Slook signs that as your intent, then every later step is checked against it.</p>
+        <ol class="stepper" id="stepper" aria-label="Progress">
+          <li data-s="1" class="now">Request</li><li data-s="2">Intent &amp; proposal</li><li data-s="3">Approve</li><li data-s="4">Verify</li><li data-s="5">Settle</li>
+        </ol>
+        <div class="card">
+          <h3>1 · Request</h3>
+          <label class="field" for="req">What should the agent buy?</label>
+          <div class="row" style="flex-wrap:nowrap">
+            <input id="req" type="text" value="Buy 12 donuts and 3 kg of grapes for Friday morning under $80." maxlength="300" autocomplete="off" style="flex:1">
+            <button id="micBtn" type="button" class="btn mic" aria-label="Optional voice input" aria-pressed="false" title="Optional voice input (speech to text)">🎤 Voice</button>
+          </div>
+          <div id="voiceNote" class="small muted" style="margin-top:6px">Optional voice input: speech is transcribed into this box, you edit it, and it follows the same signed-intent path as typing. It cannot approve or pay.</div>
+          <div class="chips" id="newExamples" style="margin-top:12px"></div>
+          <details class="adv"><summary>Sandbox safety scenarios</summary>
+            <div style="margin-top:10px"><label class="field" for="scenario">Scenario</label><select id="scenario"></select>
+              <p class="small muted">Used to demonstrate the gate. Non-standard scenarios are controlled test fixtures: a deliberately altered agent proposal or PayPal order.</p>
+              <div id="keyrow" class="hidden"><label class="field" for="opkey">Operator key (needed for fixtures that alter the PayPal order)</label><input id="opkey" type="text" autocomplete="off"></div></div></details>
+          <div class="row" style="margin-top:14px"><button id="go" class="btn primary">Ask the agent</button><span id="err" class="small" style="color:var(--bad)" role="status"></span></div>
+        </div>
+        <div class="card hidden" id="assume" style="margin-top:16px;border-color:#e3c377">
+          <h3>Confirm before I sign anything</h3><p id="assumeText" style="margin:0 0 12px"></p>
+          <button id="confirmBtn" class="btn primary">Confirm and continue</button> <span class="small muted">A suggestion never becomes authority unless you confirm it.</span>
+        </div>
+        <div id="flow" class="hidden stack" style="margin-top:16px">
+          <div class="grid g2">
+            <div class="card"><h3>2 · Your signed intent</h3><div class="kv" id="intentKv"></div></div>
+            <div class="card"><h3>Agent proposal</h3>
+              <div id="proposalTable"></div>
+              <p class="small muted" id="reasoning" style="margin:10px 0 0"></p>
+              <p class="small muted" id="aiNote" style="margin:4px 0 0"></p>
+              <div id="poison" class="banner warn small hidden" style="margin-top:10px"><span id="poisonText"></span></div>
+            </div>
+          </div>
+          <div id="preflight" class="banner" role="status"></div>
+          <div class="card hidden" id="approveCard"><h3>3 · Approve with PayPal</h3>
+            <div class="row" id="approveArea">
+              <button id="orderBtn" class="btn primary hidden">Create PayPal order</button>
+              <div id="paypal-buttons" class="hidden" style="min-width:280px;max-width:380px;flex:1"></div>
+              <button id="approveBtn" class="btn primary hidden">Simulate buyer approval (demo mode)</button>
+            </div>
+            <div id="afterAuth" class="row hidden" style="margin-top:12px">
+              <button id="revokeBtn" class="btn danger">Revoke intent</button><button id="gateBtn" class="btn primary">Run the gate (fresh PayPal fetch)</button>
+            </div>
+            <p id="status" class="small muted" style="margin:12px 0 0" role="status"></p>
+          </div>
+          <div id="decision"></div>
+        </div>
+      </section>
 
-  <section id="decision"></section>
+      <!-- ================= ACTIVITY ================= -->
+      <section class="view hidden" id="v-activity" aria-labelledby="h-activity">
+        <h2 class="page" id="h-activity">Activity</h2>
+        <p class="lead">Every transaction, newest first. This list updates live as payments are verified, captured, voided or blocked.</p>
+        <div class="card">
+          <div class="row" style="justify-content:space-between;margin-bottom:12px">
+            <div class="chips" id="filters"></div>
+            <div class="row"><span id="liveDot" class="chip muted plain">connecting…</span><input id="search" type="text" placeholder="Search requests, IDs…" style="width:240px" aria-label="Search activity"></div>
+          </div>
+          <div id="actGrid" style="height:520px"></div>
+        </div>
+      </section>
 
-  <section class="card hidden" id="evidenceCard">
-    <h2>3 · Evidence <span id="evBanner" class="pill"></span></h2>
-    <p><span class="pill fresh" id="freshBadge"></span></p>
-    <div class="kv" id="evKv"></div>
-    <h2 style="margin-top:16px">Assertions — expected vs PayPal actual
-      <span style="float:right;text-transform:none"><button class="ghost on" data-f="all">All</button> <button class="ghost" data-f="fail">Mismatches</button> <button class="ghost" data-f="pass">Passed</button></span></h2>
-    <div id="assertGrid" class="grid" style="height:430px"></div>
-    <p id="assertDetail" class="muted"></p>
-    <h2 style="margin-top:16px">Drill-down</h2>
-    <div id="tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"></div>
-    <pre id="tabBody" style="background:#0f172a;color:#d6e2f5;border-radius:8px;padding:12px;max-height:320px;overflow:auto;font-size:12px;margin:0"></pre>
-    <h2 style="margin-top:16px">Ledger timeline &amp; PayPal webhooks</h2>
-    <div id="eventGrid" class="grid" style="height:260px"></div>
-  </section>
+      <!-- ================= RECEIPT ================= -->
+      <section class="view hidden" id="v-run" aria-labelledby="h-run">
+        <div class="row noprint" style="margin-bottom:10px"><a href="#/activity">← Activity</a><span class="grow"></span><button class="btn sm" id="copyLink">Copy link</button><button class="btn sm" id="printBtn">Print receipt</button></div>
+        <div id="receipt"><div class="skeleton" style="height:180px"></div></div>
+      </section>
 
-  <section class="card">
-    <h2>Scenario matrix — saved traces (REPLAY, no credentials needed)</h2>
-    <p class="muted" style="margin-top:0">Each row re-runs the gate's deterministic assertions on a recorded PayPal order. Click a row to inspect it. These are replays, not live PayPal calls.</p>
-    <div id="replayGrid" class="grid" style="height:340px"></div>
-  </section>
-
-  <section class="card">
-    <h2>All runs <button class="ghost" id="refresh" style="float:right;text-transform:none">Refresh</button></h2>
-    <div id="runGrid" class="grid" style="height:280px"></div>
-  </section>
-</main>
+      <!-- ================= SECURITY ================= -->
+      <section class="view hidden" id="v-security" aria-labelledby="h-security">
+        <h2 class="page" id="h-security">Security</h2>
+        <p class="lead">What protects each payment, how this workspace is configured, and what is deliberately not claimed.</p>
+        <div id="secBody"><div class="skeleton" style="height:160px"></div></div>
+      </section>
+    </main>
+    <footer class="site">Slook · PayPal Sandbox only · no production credentials · MIT licensed · <a href="https://github.com/sivasuryachandran/Slook">Source</a></footer>
+  </div>
+</div>
+<div id="toasts" aria-live="polite"></div>
 <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@33.3.2/dist/ag-grid-community.min.js"></script>
-<script src="app.js"></script>
+<script type="module" src="app.js"></script>
 </body>
 </html>

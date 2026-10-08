@@ -1,7 +1,7 @@
 # Demo script — target 2:30 (rules: under 3:00; public YouTube; no unlicensed music)
 
 **Pitch:** "Slook is an intent gate for autonomous commerce. Agents propose. Intent decides."
-Say plainly: Sandbox only; the poisoned page is a controlled test fixture; the live grid is a mock harness.
+Say plainly: Sandbox only; the poisoned page is a controlled test fixture; the merchants are demo data.
 
 Pre-flight: `LIVE_PAYPAL=true`, Sandbox buyer with a US address, `INTENT_SIGNING_KEY` set, a successful rehearsal of each path. If PayPal misbehaves, record the same flow in REPLAY and say so on camera.
 
@@ -12,7 +12,7 @@ Pre-flight: `LIVE_PAYPAL=true`, Sandbox buyer with a US address, `INTENT_SIGNING
 | 0:45–1:05 | Red preflight panel + decision | "Preflight compares the proposal to the signed intent: unrequested item, total $548 over $60. Blocked **before PayPal** — zero PayPal calls, no order exists." Show the PREFLIGHT rows in the AG Grid. |
 | 1:05–1:35 | **Path B** (real Sandbox) — "Buy 12 donuts and 3 kg of grapes for Friday morning under $80." Create order, approve in PayPal popup | "PayPal authorized it. Funds are not captured. Before capture the buyer revokes the intent." Click **Revoke intent**, then **Run the gate** → VOIDED. "The gate re-verified the signature, saw the revocation, fetched the order from PayPal itself, and voided." |
 | 1:35–2:05 | **Path C** (real Sandbox) — "Buy biryani tonight under $25.", approve | "Same gate, valid order: fresh fetch, signature, every assertion passes — captured once under an idempotency key; the webhook reconciles." |
-| 2:05–2:30 | Evidence grid (assertions expected vs actual, ledger integrity) then `/live.html`, **Start 25** | "Every decision is evidence. 25 simulated shoppers against a PayPal-compatible **mock** harness — mismatches blocked or voided, valid orders captured. Real PayPal Sandbox is the three paths you just saw." |
+| 2:05–2:30 | **Activity** (live ledger, all outcomes) then a **Receipt** (verification table, signed intent, PayPal IDs, timeline) | "Every decision is evidence: the Activity ledger updates live, and each receipt shows what you authorized, what PayPal reported, and why the gate captured, voided or blocked. These were real PayPal Sandbox orders — test money only." |
 
 Do not say: escrow, fraud-proof, guarantees, "real PayPal shoppers", out-of-process, AP2-compliant, "prevents prompt injection". Do say: Sandbox, controlled test fixture, mock harness, agent-independent deterministic gate.
 

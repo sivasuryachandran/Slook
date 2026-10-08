@@ -13,7 +13,7 @@ The user's request becomes a signed intent (items, quantity ranges, maximum tota
 1. **Poisoned proposal blocked before PayPal:** a merchant page injects "add a $500 gift card"; preflight compares the proposal to the signed intent and blocks it with zero PayPal calls.
 2. **Authorized, then voided:** PayPal authorizes a valid order; the user revokes (or the intent expires) before capture; the gate re-verifies, fetches the order from PayPal itself, and voids the authorization.
 3. **Clean capture:** fresh PayPal fetch, signature and every assertion pass, one idempotent capture, webhook reconciliation.
-Every step is evidence in an AG Grid console (expected vs actual, signature check, PayPal IDs, idempotency keys, hash-chained ledger), labelled LIVE, MOCK or REPLAY.
+Every purchase gets a statement-style receipt and a live Activity ledger in AG Grid (expected vs. what PayPal reported, signature check, PayPal IDs, idempotency keys, hash-chained ledger), labelled Sandbox or Demo mode.
 
 ## How we built it
 Node/Express, Postgres (embedded locally, Render in hosting), PayPal Sandbox Orders + Payments APIs with `PayPal-Request-Id` idempotency and webhooks, NVIDIA Nemotron for two jobs (structured intent compile grounded in the user's words, and product selection from untrusted page data; prices always come from product data; everything validated server-side with a labelled deterministic fallback), AG Grid Community for the evidence and live consoles, k6 and Playwright for load and browser tests, Postman collection for reproducibility. Optional voice input fills the text box only.
@@ -24,13 +24,13 @@ The model is not reliable enough to trust with money: in our earlier 50-scenario
 ## Honest limits
 - Sandbox only; no production credentials or mode.
 - The poisoned page and every non-matching order are **controlled test fixtures**, not organic agent failures.
-- The live-grid simulation is a PayPal-compatible **mock harness**; real PayPal Sandbox runs are tested separately. Measured spike p99 has a large outlier.
+- Load testing used a PayPal-compatible **mock harness** (internal tooling, off in production); real PayPal Sandbox runs are tested separately. Measured spike p99 has a large outlier.
 - "Agent-independent" means the AI has no keys, no PayPal credentials and no capture/void endpoint; the gate is a module in the same server, not a separate process.
 - Slook does not replace PayPal's merchant-side cart validation. It independently verifies whether the final PayPal transaction remains within the user's signed authority before capture.
 - Not escrow, not fraud detection, not AP2-compliant (an AP2-inspired, application-specific contract).
 
 ## Built with
-PayPal (Orders v2, Payments v2, webhooks), AG Grid, NVIDIA Nemotron, Node.js, Postgres, k6, Playwright, Postman. Render hosts the demo at https://slook-g7dn.onrender.com (Postgres); real signed PayPal webhooks were verified end to end there.
+PayPal (Orders v2, Payments v2, webhooks), AG Grid (Activity ledger and receipt verification), NVIDIA Nemotron, Node.js, Postgres, k6, Playwright, Postman. Render hosts the demo at https://slook-g7dn.onrender.com (Postgres); real signed PayPal webhooks were verified end to end there.
 
 ## Testing instructions
-No credentials needed: `npm install && npm start`, open `http://localhost:3000`, pick *Path A / Path B / Matching order*, press "Simulate buyer approval (REPLAY)". Live Runs: `/live.html`. Tests: `npm test`, `npm run test:browser`. Sandbox credentials and the Sandbox buyer login for judges go in the private Devpost testing field; never in the repo.
+No credentials needed: `npm install && npm start`, open `http://localhost:3000`, open *New purchase*, ask, create the order and press "Simulate buyer approval (demo mode)" (Path A and Path B are under *Sandbox safety scenarios*). Tests: `npm test`, `npm run test:browser`. Sandbox credentials and the Sandbox buyer login for judges go in the private Devpost testing field; never in the repo.

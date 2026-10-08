@@ -12,7 +12,7 @@ const MOCK = () => {
 };
 
 test('voice: mic button is visible and labelled as optional voice input, not an assistant', async ({ page }) => {
-  await page.addInitScript(MOCK); await page.goto('/');
+  await page.addInitScript(MOCK); await page.goto('/#/new');
   const mic = page.getByRole('button', { name: 'Optional voice input' });
   await expect(mic).toBeVisible();
   await expect(page.locator('#voiceNote')).toContainText('cannot approve or pay');
@@ -21,7 +21,7 @@ test('voice: mic button is visible and labelled as optional voice input, not an 
 test('voice: transcript lands in the input, is editable, and follows the normal signed-intent path', async ({ page }) => {
   await page.addInitScript(MOCK);
   const posts = []; page.on('request', (r) => { if (r.method() === 'POST') posts.push({ url: new URL(r.url()).pathname, body: r.postDataJSON?.() }); });
-  await page.goto('/');
+  await page.goto('/#/new');
   await page.evaluate(() => { window.__heard = 'buy 12 donuts and 3 kg of grapes for friday morning under $80'; });
   await page.getByRole('button', { name: 'Optional voice input' }).click();
   await expect(page.locator('#req')).toHaveValue('buy 12 donuts and 3 kg of grapes for friday morning under $80');
@@ -38,7 +38,7 @@ test('voice: transcript lands in the input, is editable, and follows the normal 
 });
 
 test('voice: typed and spoken text compile to the identical signed intent', async ({ page, request }) => {
-  await page.addInitScript(MOCK); await page.goto('/');
+  await page.addInitScript(MOCK); await page.goto('/#/new');
   const text = 'Find a suitable birthday cake under $60.';
   await page.evaluate((t) => { window.__heard = t; }, text);
   await page.getByRole('button', { name: 'Optional voice input' }).click();
@@ -52,7 +52,7 @@ test('voice: typed and spoken text compile to the identical signed intent', asyn
 test('voice: "yes, pay" cannot approve, capture or void anything', async ({ page, request }) => {
   await page.addInitScript(MOCK);
   const posts = []; page.on('request', (r) => { if (r.method() === 'POST') posts.push(new URL(r.url()).pathname); });
-  await page.goto('/');
+  await page.goto('/#/new');
   await page.fill('#req', 'Buy biryani tonight under $25.'); // a draft the user is working on
   await page.evaluate(() => { window.__heard = 'yes, pay'; });
   await page.getByRole('button', { name: 'Optional voice input' }).click();
@@ -73,7 +73,7 @@ test('voice: "yes, pay" cannot approve, capture or void anything', async ({ page
 
 test('voice: unsupported browser shows a clear message and typing still works', async ({ page }) => {
   await page.addInitScript(() => { Object.defineProperty(window, 'SpeechRecognition', { value: undefined, configurable: true }); Object.defineProperty(window, 'webkitSpeechRecognition', { value: undefined, configurable: true }); });
-  await page.goto('/');
+  await page.goto('/#/new');
   await page.getByRole('button', { name: 'Optional voice input' }).click();
   await expect(page.locator('#voiceNote')).toContainText('not supported in this browser');
   await page.fill('#req', 'Buy biryani tonight under $25.');
