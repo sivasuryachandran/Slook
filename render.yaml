@@ -1,25 +1,38 @@
+# Slook on Render: one web service + one Postgres database.
+# Secrets marked `sync: false` are entered in the Render dashboard; they are never stored in this file.
 services:
   - type: web
     name: slook
     runtime: node
+    plan: free            # free instances sleep after ~15 min idle; use "starter" on recording day
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /healthz
     envVars:
+      - { key: NODE_VERSION, value: "22" }
+      - { key: NODE_ENV, value: production }
       - { key: DATABASE_URL, fromDatabase: { name: slook-db, property: connectionString } }
-      - { key: LIVE_PAYPAL, value: "false" }   # set "true" after adding sandbox credentials
+      # --- PayPal Sandbox (server-side only)
+      - { key: LIVE_PAYPAL, value: "false" }   # set to "true" after the Sandbox keys are in
       - { key: PAYPAL_ENV, value: sandbox }
-      - { key: APP_BASE_URL, sync: false }
       - { key: PAYPAL_CLIENT_ID, sync: false }
       - { key: PAYPAL_CLIENT_SECRET, sync: false }
       - { key: PAYPAL_WEBHOOK_ID, sync: false }
-      - { key: ANTHROPIC_API_KEY, sync: false }
-      - { key: AI_PROVIDER, value: anthropic }
-      - { key: AI_MODEL, value: claude-sonnet-5-5 }
+      - { key: APP_BASE_URL, sync: false }     # https://<service>.onrender.com
+      # --- intent signing (npm run gen:key). Required: without it contracts do not survive a restart.
+      - { key: INTENT_SIGNING_KEY, sync: false }
+      - { key: INTENT_TTL_MIN, value: "60" }
+      # --- optional AI proposal service (falls back to a labelled deterministic agent)
+      - { key: REPLAY_MODE, value: "true" }    # set to "false" and add NVIDIA_API_KEY for live model proposals
+      - { key: AI_PROVIDER, value: nvidia }
+      - { key: NVIDIA_API_KEY, sync: false }
+      - { key: NVIDIA_BASE_URL, value: "https://integrate.api.nvidia.com/v1" }
+      - { key: NVIDIA_MODEL, value: "nvidia/nemotron-3.5-lightning-30b-a3b" }
+      - { key: AI_TEMPERATURE, value: "0.2" }
+      # --- operator controls
       - { key: INTERNAL_ACTION_KEY, generateValue: true }
-      - { key: INTENT_SIGNING_KEY, sync: false }   # npm run gen:key  (Ed25519 PKCS8 DER, base64)
-      - { key: REPLAY_MODE, value: "true" }
-      - { key: NODE_ENV, value: production }
+      - { key: SIM_MAX_ACTIVE, value: "300" }
 databases:
   - name: slook-db
     plan: free
+    ipAllowList: []       # internal connections only (the web service reaches it over Render's private network)
